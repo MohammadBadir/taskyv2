@@ -28,7 +28,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
+class Subject{
+  String label;
+  int startTime;
+  int endTime;
+  bool isEmpty;
+  Subject(this.label, this.startTime, this.endTime){
+    isEmpty = false;
+  }
+  Subject.whiteSpace(this.startTime, this.endTime){
+    isEmpty = true;
+  }
+  int duration(){
+    return endTime-startTime;
+  }
+}
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -48,7 +62,96 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+//Adds whitespace to Subject list
+List<Subject> processSubjectList(List<Subject> inputList){
+  int maxSize = 21;
+  List<Subject> outputList = [];
+  inputList.sort((Subject a, Subject b) => a.startTime.compareTo(b.startTime));
 
+  //If list is empty, then output is a list containing a single whitespace
+  if(inputList.isEmpty){
+    outputList.add(Subject.whiteSpace(0, maxSize));
+    return outputList;
+  }
+
+  //If first subject isn't at the beginning of the day, add whitespace of fitting size
+  if(inputList.first.startTime > 0){
+    outputList.add(Subject.whiteSpace(0, inputList.first.startTime));
+  }
+
+  //Add subjects and whitespaces
+  for(int i=0; i<inputList.length; ++i){
+    Subject curr = inputList[i];
+    Subject next = i<inputList.length-1 ? inputList[i+1] : null;
+    outputList.add(curr);
+    if(next != null && next.startTime>curr.endTime){
+      outputList.add(Subject.whiteSpace(curr.endTime, next.startTime));
+    }
+    if(next == null && maxSize>curr.endTime){
+      outputList.add(Subject.whiteSpace(curr.endTime, maxSize));
+    }
+  }
+
+  return outputList;
+}
+
+//Builds a column of tasks for a weekday
+Widget weekColumnMaker(String weekDay, double hei){
+
+  //Returns a stylized card with given label and height (in units)
+  Widget Function(String,[double, bool]) cardFunc = (String label, [double unitHeight = 1, bool isTitle = false]){
+    return Container(
+      height: unitHeight * hei,
+      child: Card(
+        color: isTitle ? Colors.white : Colors.yellow,
+        child: ClipPath(
+          child: Container(
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+            // height: 100,
+            decoration: BoxDecoration(
+                border: isTitle ?
+                Border(bottom:BorderSide(color: Colors.blueAccent, width: 5) ,top: BorderSide(color: Colors.blueAccent, width: 5))
+                    : null
+            ),
+          )
+          ,
+          clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(3))),
+        ),
+
+      ),
+    );
+  };
+
+  //Returns empty space with given height (in units)
+  Widget Function([double]) emptySpace = ([double unitHeight = 1]){
+    return Container(
+      height: unitHeight * hei,
+      child: Text("hi, I'm this tall in units:"+unitHeight.toString()),
+    );
+  };
+
+  List<Subject> x = [Subject("Compilation Theory", 0, 6), Subject("Other Ex", 7, 9),Subject("hallo", 17, 21)];
+
+  List<Subject> processedList = processSubjectList(x);
+
+  List<Widget> items = [cardFunc(weekDay,1.5,true)];
+
+  processedList.forEach((element) {
+    if(element.isEmpty){
+      items.add(emptySpace(element.duration().toDouble()));
+    } else {
+      items.add(cardFunc(element.label,element.duration().toDouble()));
+    }
+  });
+
+  return Column(children: items);
+}
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
@@ -85,7 +188,19 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Container(),
+        child: Row(
+          children: [
+            Expanded(child: weekColumnMaker("Sunday",testHeight)),
+            VerticalDivider(),
+            Expanded(child: weekColumnMaker("Sunday",testHeight)),
+            VerticalDivider(),
+            Expanded(child: weekColumnMaker("Sunday",testHeight)),
+            VerticalDivider(),
+            Expanded(child: weekColumnMaker("Sunday",testHeight)),
+            VerticalDivider(),
+            Expanded(child: weekColumnMaker("Sunday",testHeight))
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
