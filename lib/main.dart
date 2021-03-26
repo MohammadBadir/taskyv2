@@ -140,7 +140,7 @@ Widget weekColumnMaker(String weekDay, double hei){
 
   List<Subject> processedList = processSubjectList(x);
 
-  List<Widget> items = [cardFunc(weekDay,1.5,true)];
+  List<Widget> items = [cardFunc(weekDay,2,true)];
 
   processedList.forEach((element) {
     if(element.isEmpty){
@@ -169,7 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    double testHeight = (MediaQuery.of(context).size.height-56)/22.5;
+    double testHeight = (MediaQuery.of(context).size.height-56)/23;
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
