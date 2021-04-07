@@ -23,6 +23,9 @@ environment:
 dependencies:
   intl: ^0.17.0
   firebase_auth: ^1.0.1
+  flutter_auth_buttons: ^0.10.0
+  google_sign_in: ^5.0.1
+  provider: ^5.0.0
   flutter:
     sdk: flutter
 
