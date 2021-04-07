@@ -21,6 +21,7 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
+  firebase_core: ^1.0.3
   intl: ^0.17.0
   firebase_auth: ^1.0.1
   flutter_auth_buttons: ^0.10.0
