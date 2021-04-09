@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'app/app.dart';
 import 'app/services/firebase_auth_service.dart';
+import 'app/services/user_db.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,9 @@ void main() async{
           context
               .read<FirebaseAuthService>()
               .onAuthStateChanged,
+        ),
+        ChangeNotifierProvider(
+            create: (context) => UserDB()
         ),
       ],
       child: MyApp(),

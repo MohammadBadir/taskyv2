@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tasky/app/drawer/my_drawer.dart';
 
 import '../../../app/constants/strings.dart';
 import '../../../app/services/firebase_auth_service.dart';
@@ -11,8 +11,8 @@ class HomeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("dummy"),),
-      drawer: Drawer(),
+      appBar: AppBar(title: Center(child: Text("dummy")),),
+      drawer: MyDrawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -24,7 +24,7 @@ class HomeWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Home Page',
+                Provider.of<FirebaseAuthService>(context).currentUser().displayName,
                 style: Theme.of(context).textTheme.headline4,
               ),
             ),

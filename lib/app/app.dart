@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import 'models/user.dart';
 
 class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -26,7 +28,16 @@ class MyApp extends StatelessWidget {
                 if (user == null) {
                   return const SignInWidget();
                 } else {
-                  return const HomeWidget();
+                  return FutureBuilder(
+                      future: Provider.of<UserDB>(context).downloadCourseData(),
+                      builder: (context,snapshot){
+                        if(snapshot.hasError){
+                          return Text(snapshot.error.toString());
+                        } else if(snapshot.connectionState == ConnectionState.done){
+                          return HomeWidget();
+                        }
+                        return Center(child: CircularProgressIndicator());
+                  });
                 }
               },
             ),
