@@ -5,7 +5,7 @@ import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 import 'package:provider/provider.dart';
 
-import 'models/user.dart';
+import 'models/user_data.dart';
 
 class MyApp extends StatelessWidget {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();

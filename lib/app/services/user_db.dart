@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
-  Map<String,List<int>> courseProgressMap;
+  Map<String,Map<String,List<int>>> courseProgressMap;
   List courseOrder;
   DocumentReference userDocument;
   int debugNum = 0;
@@ -29,6 +30,23 @@ class UserDB extends ChangeNotifier {
     courseOrder.add(word+debugNum.toString());
     print(courseOrder);
     await userDocument.update({'courseOrder' : courseOrder});
+    notifyListeners();
+  }
+
+  addCourse(String courseName, CourseOptions courseOptions) async{
+    assert(FirebaseAuth.instance.currentUser != null);
+    assert(courseOrder != null);
+    assert(userDocument != null);
+    Map tempMap = {};
+    List<int> temp = [];
+    if(courseOptions.hasLecture){
+      tempMap['Lecture']=temp;
+    }
+    if(courseOptions.hasTutorial){
+      tempMap['Tutorial']=temp;
+    }
+    courseProgressMap[courseName]=tempMap;
+    await userDocument.update({'courseProgressMap' : courseProgressMap});
     notifyListeners();
   }
 }
