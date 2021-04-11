@@ -11,7 +11,7 @@ class HomeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("dummy")),),
+      appBar: AppBar(title: Center(child: Text("Home")),),
       drawer: MyDrawer(),
       body: Center(
         child: Column(

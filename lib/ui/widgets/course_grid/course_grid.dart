@@ -145,8 +145,56 @@ class CourseGridWidget extends StatelessWidget {
       Provider.of<UserDB>(context,listen: false).updateProgressMap(courseProgressMap);
     };
 
+    if(courseOrder.length==0){
+      return Scaffold(
+        appBar: AppBar(title: Center(child: Text("Course Grid")),),
+        drawer: MyDrawer(),
+        body: Center(child: Text("No courses found. Click on the Plus button to add some!",style: TextStyle(fontSize: 24),)),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: (){
+            showDialog(
+                context: context,
+                builder: (BuildContext context){
+                  String courseName;
+                  return AlertDialog(
+                    title: Text("Enter Course Name"),
+                    content: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: "Course Name",
+                      ),
+                      onChanged: (String str){
+                        courseName = str;
+                      },
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: (){
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Cancel"),
+                      ),
+                      TextButton(
+                          onPressed: (){
+                            if(courseName==null){
+                              return;
+                            }
+                            Provider.of<UserDB>(context,listen: false).addCourse(courseName, CourseOptions(true, true));
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("Confirm")
+                      ),
+                    ],
+                  );
+                }
+            );
+          },
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("dummy")),),
+      appBar: AppBar(title: Center(child: Text("Course Grid")),),
       drawer: MyDrawer(),
       body: Center(
         child: Stack(
@@ -188,6 +236,7 @@ class CourseGridWidget extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
         onPressed: (){
           showDialog(
               context: context,

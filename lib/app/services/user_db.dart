@@ -15,7 +15,14 @@ class UserDB extends ChangeNotifier {
     assert(FirebaseAuth.instance.currentUser != null);
     String uid = FirebaseAuth.instance.currentUser.uid;
     userDocument = FirebaseFirestore.instance.collection('testCollection').doc(uid);
-    DocumentSnapshot userSnapshot = await userDocument.get();
+    DocumentSnapshot userSnapshot;
+    try{
+      userSnapshot = await userDocument.get();
+    } catch(e){
+      userDocument.set({});
+      userSnapshot = await userDocument.get();
+    }
+
     try{
       courseOrder = userSnapshot.get('courseOrder');
       courseProgressMap = userSnapshot.get('courseProgressMap');
