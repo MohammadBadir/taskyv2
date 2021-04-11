@@ -29,8 +29,7 @@ class UserDB extends ChangeNotifier {
     } catch (e) {
       courseOrder = [];
       courseProgressMap = {};
-      await userDocument.update({'courseOrder' : courseOrder});
-      await userDocument.update({'courseProgressMap' : courseProgressMap});
+      await userDocument.set({'courseOrder' : courseOrder,'courseProgressMap' : courseProgressMap});
     }
   }
 
