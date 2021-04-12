@@ -111,9 +111,11 @@ class CourseGridWidget extends StatelessWidget {
       List tempListA = (courseProgressMap[auxListA[0]])[auxListA[1]];
       if(tempListA.contains(placement)){
         return Icon(Icons.check);
-      } else {
-        return null;
       }
+      if(tempListA.contains(placement+columnCount)){
+        return Icon(Icons.circle,color: Colors.grey,);
+      }
+      return null;
     };
 
     Container Function(int index) gridUnit = (index) => Container(
@@ -139,7 +141,25 @@ class CourseGridWidget extends StatelessWidget {
       if(tempList.contains(placement)){
         tempList.remove(placement);
       } else {
+        tempList.remove(placement+columnCount);
         tempList.add(placement);
+      }
+      (courseProgressMap[auxList[0]])[auxList[1]] = tempList;
+      Provider.of<UserDB>(context,listen: false).updateProgressMap(courseProgressMap);
+    };
+
+    Null Function(int index) tableDotModifier = (index){
+      assert(index>=columnCount);
+      assert(index%columnCount>=2);
+      int rowNum = -1 + index ~/ columnCount;
+      int placement = index % columnCount;
+      List auxList = (auxListMaker(courseOrder, courseProgressMap))[rowNum];
+      List tempList = (courseProgressMap[auxList[0]])[auxList[1]];
+      if(tempList.contains(placement+columnCount)){
+        tempList.remove(placement+columnCount);
+      } else {
+        tempList.remove(placement);
+        tempList.add(placement+columnCount);
       }
       (courseProgressMap[auxList[0]])[auxList[1]] = tempList;
       Provider.of<UserDB>(context,listen: false).updateProgressMap(courseProgressMap);
@@ -206,7 +226,7 @@ class CourseGridWidget extends StatelessWidget {
                 childAspectRatio: (gridWidth/gridHeight) * (rowCount/columnCount),
                 crossAxisCount: columnCount,
                 children: List.generate(columnCount * rowCount,
-                        (index) => index>=columnCount && index%columnCount>=2 && index%columnCount<columnCount ? InkWell(child: gridUnit(index), onTap: (){tableModifier(index); },) : gridUnit(index)
+                        (index) => index>=columnCount && index%columnCount>=2 && index%columnCount<columnCount ? InkWell(child: gridUnit(index), onTap: (){tableModifier(index); }, onLongPress: (){tableDotModifier(index);},) : gridUnit(index)
                 ),
               ),
             ),
