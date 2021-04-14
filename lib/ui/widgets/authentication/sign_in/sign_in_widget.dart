@@ -31,7 +31,6 @@ class SignInViewBody extends StatelessWidget {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.all(16),
@@ -40,25 +39,17 @@ class SignInViewBody extends StatelessWidget {
               style: Theme.of(context).textTheme.headline4,
             ),
           ),
-          Expanded(
-            child: isLoading ? _loadingIndicator() : _signInButtons(context),
-          ),
+          isLoading ? _loadingIndicator() : _signInButtons(context),
         ],
       ),
     );
   }
 
-  Center _loadingIndicator() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+  Widget _loadingIndicator() {
+    return CircularProgressIndicator();
   }
 
-  Column _signInButtons(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        const GoogleSignInButton(),
-      ],
-    );
+  Widget _signInButtons(BuildContext context) {
+    return const GoogleSignInButton();
   }
 }
