@@ -5,6 +5,7 @@ import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
   //Map<String,Map<String,List<int>>> courseProgressMap;
+  //
   Map courseProgressMap;
   List courseOrder;
   DocumentReference userDocument;
@@ -56,11 +57,15 @@ class UserDB extends ChangeNotifier {
     assert(courseOrder != null);
     assert(userDocument != null);
     Map tempMap = {};
-    if(courseOptions.hasLecture){
-      tempMap['Lecture']=[];
-    }
-    if(courseOptions.hasTutorial){
-      tempMap['Tutorial']=[];
+    if(courseOptions.isSinglton){
+      tempMap['Singleton']=[];
+    } else {
+      if(courseOptions.hasLecture){
+        tempMap['Lecture']=[];
+      }
+      if(courseOptions.hasTutorial){
+        tempMap['Tutorial']=[];
+      }
     }
     courseProgressMap[courseName]=tempMap;
     courseOrder.add(courseName);

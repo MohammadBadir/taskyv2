@@ -2,6 +2,6 @@ class CourseOptions{
   bool hasLecture;
   bool hasTutorial;
   //bool hasWorkshop;
-  //bool isSingular;
-  CourseOptions(this.hasLecture,this.hasTutorial);
+  bool isSinglton;
+  CourseOptions(this.isSinglton,[this.hasLecture = false,this.hasTutorial = false]);
 }

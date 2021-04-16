@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:tasky/ui/widgets/course_grid/course_grid.dart';
-import 'package:tasky/ui/widgets/home/home_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:tasky/ui/widgets/home/home_widget.dart';
 
 import 'models/user_data.dart';
 
@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
           return MaterialApp(home: Scaffold(body: Center(child: Text(snapshot.error.toString()))));
         } else if(snapshot.connectionState == ConnectionState.done){
           return MaterialApp(
-            title: 'Material App',
+            title: 'Tasky',
             theme: ThemeData(
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
