@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/services/firebase_auth_service.dart';
-import 'package:tasky/ui/widgets/course_grid/course_grid.dart';
+import 'package:tasky/ui/widgets/course_grid/course_table.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 
-class MyDrawer extends StatelessWidget {
+class NavigationDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(child: ListView(children: [Container(
@@ -47,7 +47,7 @@ class MyDrawer extends StatelessWidget {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (BuildContext context) {
-              return CourseGridWidget();
+              return CourseTableWidget();
             },
           ),
         );

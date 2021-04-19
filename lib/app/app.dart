@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
-import 'package:tasky/ui/widgets/course_grid/course_grid.dart';
+import 'package:tasky/ui/widgets/course_grid/course_table.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 

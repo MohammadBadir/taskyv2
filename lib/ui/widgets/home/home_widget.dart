@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tasky/app/drawer/my_drawer.dart';
+import 'package:tasky/app/drawer/navigation_drawer.dart';
 
 import '../../../app/constants/strings.dart';
 import '../../../app/services/firebase_auth_service.dart';
@@ -12,7 +12,7 @@ class HomeWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Center(child: Text("Home")),),
-      drawer: MyDrawer(),
+      drawer: NavigationDrawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
