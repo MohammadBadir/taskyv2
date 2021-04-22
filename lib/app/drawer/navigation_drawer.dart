@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/services/firebase_auth_service.dart';
-import 'package:tasky/ui/widgets/course_grid/course_table.dart';
+import 'package:tasky/ui/widgets/course_table/course_table.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 
 class NavigationDrawer extends StatelessWidget {
@@ -42,7 +42,7 @@ class NavigationDrawer extends StatelessWidget {
           ),
         );
       },),
-      ListTile(title: Text("Course Grid"),onTap: (){
+      ListTile(title: Text("Course Table"),onTap: (){
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(

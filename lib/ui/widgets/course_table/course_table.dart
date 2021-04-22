@@ -197,7 +197,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       //"2 Lectures + 1 Tutorial",
       "Lecture + Tutorial",
       "Lecture only",
-      "Singleton"
+      "No Label"
     ];
 
     return Scaffold(
