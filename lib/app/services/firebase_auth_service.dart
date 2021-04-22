@@ -6,10 +6,12 @@ import '../models/user_data.dart';
 class FirebaseAuthService {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
+  bool _isInitialized;
 
   FirebaseAuthService({FirebaseAuth firebaseAuth, GoogleSignIn googleSignin})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignin ?? GoogleSignIn();
+        _googleSignIn = googleSignin ?? GoogleSignIn(),
+        _isInitialized = false;
 
   UserData _userDataFromFirebaseUser(User user) {
     if (user == null) {
@@ -44,11 +46,18 @@ class FirebaseAuthService {
   }
 
   Future<void> signOut() async {
+    _isInitialized = false;
     return _firebaseAuth.signOut();
   }
 
   UserData currentUser() {
     final userData = _firebaseAuth.currentUser;
     return _userDataFromFirebaseUser(userData);
+  }
+
+  bool get isInitialized => _isInitialized;
+
+  markInitialized(){
+    _isInitialized = true;
   }
 }

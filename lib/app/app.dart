@@ -2,6 +2,7 @@ import 'dart:html';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:tasky/app/services/firebase_auth_service.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
-  bool isInitalized = false;
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -35,13 +35,13 @@ class _MyAppState extends State<MyApp> {
                 if (user == null) {
                   return const SignInWidget();
                 } else {
-                  return isInitalized ? HomeWidget() : FutureBuilder(
+                  return Provider.of<FirebaseAuthService>(context).isInitialized ? HomeWidget() : FutureBuilder(
                       future: Provider.of<UserDB>(context).downloadCourseData(),
                       builder: (context,snapshot){
-                        isInitalized = true;
                         if(snapshot.hasError){
-                          return Text(snapshot.error.toString());
+                          return Center(child: Text(snapshot.error.toString()));
                         } else if(snapshot.connectionState == ConnectionState.done){
+                          Provider.of<FirebaseAuthService>(context).markInitialized();
                           return HomeWidget();
                         }
                         return Center(child: CircularProgressIndicator());

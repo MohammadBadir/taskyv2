@@ -5,7 +5,6 @@ import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
   //Map<String,Map<String,List<int>>> courseProgressMap;
-  //
   Map courseProgressMap;
   List courseOrder;
   DocumentReference userDocument;
