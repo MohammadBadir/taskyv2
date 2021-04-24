@@ -9,6 +9,7 @@ class UserDB extends ChangeNotifier {
   List courseOrder;
   DocumentReference userDocument;
   int debugNum = 0;
+  Map courseGrades;
 
   downloadCourseData() async{
     print("Download");
@@ -26,11 +27,19 @@ class UserDB extends ChangeNotifier {
     try{
       courseOrder = userSnapshot.get('courseOrder');
       courseProgressMap = userSnapshot.get('courseProgressMap');
-    } catch (e) {
+    } catch (e){
       courseOrder = [];
       courseProgressMap = {};
       await userDocument.set({'courseOrder' : courseOrder,'courseProgressMap' : courseProgressMap});
     }
+
+    try{
+      courseGrades = userSnapshot.get('courseGrades');
+    } catch(e){
+      courseGrades = {};
+      await userDocument.set({'courseGrades' : courseGrades});
+    }
+
   }
 
   updateProgressMap(Map newMap){
@@ -71,6 +80,11 @@ class UserDB extends ChangeNotifier {
     await userDocument.update({'courseProgressMap' : courseProgressMap});
     await userDocument.update({'courseOrder' : courseOrder});
     notifyListeners();
+  }
+
+  addCourseGrade(String courseName, int points, int grade) async{
+    courseGrades[courseName]=[points,grade];
+    await userDocument.update({'courseGrades' : courseGrades});
   }
 
   int numOfCourseRows(){

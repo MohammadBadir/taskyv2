@@ -5,6 +5,8 @@ import 'package:tasky/app/services/firebase_auth_service.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:tasky/ui/widgets/course_table/course_table.dart';
+import 'package:tasky/ui/widgets/course_grid/course_table.dart';
+import 'package:tasky/ui/widgets/grade_calc/grade_calc.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 
 class NavigationDrawer extends StatelessWidget {
@@ -72,7 +74,18 @@ class NavigationDrawer extends StatelessWidget {
             },
           ),
         );
+      },),
+      ListTile(title: Text("Grades"),onTap: (){
+        Navigator.of(context).pop();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (BuildContext context) {
+              return GradeWidget();
+            },
+          ),
+        );
       },)
+
     ],
     ),
     );
