@@ -19,8 +19,8 @@ class GradeWidget extends StatelessWidget{
               context: context,
               builder: (BuildContext context){
                 String courseName;
-                int coursePoints;
-                int courseGrade;
+                double coursePoints;
+                double courseGrade;
                 return StatefulBuilder(
                   builder: (context, setState){
                     return AlertDialog(
@@ -42,7 +42,7 @@ class GradeWidget extends StatelessWidget{
                               labelText: "Points",
                             ),
                             onChanged: (String str){
-                              coursePoints = int.parse(str);
+                              coursePoints = double.parse(str);
                             },
                           ),
                           TextFormField(
@@ -50,7 +50,7 @@ class GradeWidget extends StatelessWidget{
                               labelText: "Grade",
                             ),
                             onChanged: (String str){
-                              courseGrade = int.parse(str);
+                              courseGrade = double.parse(str);
                             },
                           )
                         ],

@@ -9,7 +9,7 @@ class UserDB extends ChangeNotifier {
   List courseOrder;
   DocumentReference userDocument;
   int debugNum = 0;
-  Map courseGrades;
+  Map courseGradesMap;
 
   downloadCourseData() async{
     print("Download");
@@ -34,10 +34,10 @@ class UserDB extends ChangeNotifier {
     }
 
     try{
-      courseGrades = userSnapshot.get('courseGrades');
+      courseGradesMap = userSnapshot.get('courseGradesMap');
     } catch(e){
-      courseGrades = {};
-      await userDocument.set({'courseGrades' : courseGrades});
+      courseGradesMap = {};
+      await userDocument.update({'courseGradesMap' : courseGradesMap});
     }
 
   }
@@ -82,9 +82,9 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  addCourseGrade(String courseName, int points, int grade) async{
-    courseGrades[courseName]=[points,grade];
-    await userDocument.update({'courseGrades' : courseGrades});
+  addCourseGrade(String courseName, double points, double grade) async{
+    courseGradesMap[courseName]=[points,grade];
+    await userDocument.update({'courseGrades' : courseGradesMap});
   }
 
   int numOfCourseRows(){
