@@ -137,9 +137,10 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
       //Add tapping functionality if necessary
       if(index>=columnCount && index%columnCount>=2 && index%columnCount<columnCount){
         return InkWell(
-            child: rawTableUnitMaker(index),
-            onTap: () => toggleTableUnit(index),
-            onLongPress: () => togglePendingTableUnit(index)
+          child: rawTableUnitMaker(index),
+          onTap: () => toggleTableUnit(index),
+          onLongPress: () => togglePendingTableUnit(index),
+          onDoubleTap: () => togglePendingTableUnit(index),
         );
       } else {
         return rawTableUnitMaker(index);

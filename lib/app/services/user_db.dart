@@ -84,7 +84,8 @@ class UserDB extends ChangeNotifier {
 
   addCourseGrade(String courseName, double points, double grade) async{
     courseGradesMap[courseName]=[points,grade];
-    await userDocument.update({'courseGrades' : courseGradesMap});
+    await userDocument.update({'courseGradesMap' : courseGradesMap});
+    notifyListeners();
   }
 
   int numOfCourseRows(){

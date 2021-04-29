@@ -6,11 +6,18 @@ import 'package:tasky/app/services/user_db.dart';
 class GradeWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
+    List temp = [];
+    Provider.of<UserDB>(context).courseGradesMap.forEach((key, value) { temp.add("$key $value");});
     return Scaffold(
       appBar: AppBar(title: Center(child: Text("Grades")),),
       drawer: NavigationDrawer(),
       body: Center(
-        child: Container(),
+        child: ListView(
+          children: List.generate(
+              temp.length,
+                  (index) => Text(temp[index])
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
