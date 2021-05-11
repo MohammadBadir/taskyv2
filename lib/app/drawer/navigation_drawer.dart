@@ -27,16 +27,19 @@ class NavigationDrawer extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: Text(
-                Provider.of<FirebaseAuthService>(context).currentUser().displayName,
-                style: Theme.of(context).textTheme.headline4,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  Provider.of<FirebaseAuthService>(context).currentUser().displayName,
+                  style: Theme.of(context).textTheme.headline4,
+                ),
               ),
             ),
           ],
         ),
       ),
     ), Divider(),
-      ListTile(title: Text("Home"),onTap: (){
+      ListTile(title: Text("  Home"),onTap: (){
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -64,7 +67,7 @@ class NavigationDrawer extends StatelessWidget {
           ),
         );
       },),
-      ListTile(title: Text("Course Table"),onTap: (){
+      ListTile(title: Text("  Course Table"),onTap: (){
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -74,12 +77,12 @@ class NavigationDrawer extends StatelessWidget {
           ),
         );
       },),
-      ListTile(title: Text("Grades"),onTap: (){
+      ListTile(title: Text("  Homework"),onTap: (){
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (BuildContext context) {
-              return GradeWidget();
+              return HomeworkWidget();
             },
           ),
         );
