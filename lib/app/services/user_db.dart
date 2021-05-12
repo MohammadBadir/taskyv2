@@ -99,6 +99,12 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
+  completeHomework(Map hw) async{
+    homeworkList.remove(hw);
+    await userDocument.update({'homeworkList' : homeworkList});
+    notifyListeners();
+  }
+
   int numOfCourseRows(){
     return courseProgressMap.length;
   }

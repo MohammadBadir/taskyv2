@@ -18,7 +18,29 @@ class HomeworkWidget extends StatelessWidget{
     List temp = Provider.of<UserDB>(context).homeworkList;
     temp.sort((var a, var b) => a['due'].compareTo(b['due']));
     var courses = Provider.of<UserDB>(context).courseOrder;
-    var r = Random(DateTime.now().microsecond);
+    var a = DateTime.now();
+    var b = DateTime(a.year,a.month,a.day);
+    var diff = (int index) => DateTime.fromMillisecondsSinceEpoch(temp[index]['due']).difference(b).inDays;
+    var trail = (index){
+      String text;
+      if(diff(index)<0){
+        return null;
+      }
+
+      if(diff(index)==0){
+        text = 'TODAY';
+      } else if(diff(index)==1){
+        text = diff(index).toString() + ' DAY';
+      } else {
+        text = diff(index).toString() + ' DAYS';
+      }
+      return diff(index)<=7 ? Badge(
+        badgeColor: diff(index) > 3 ? Colors.orange : Colors.red,
+        shape: BadgeShape.square,
+        borderRadius: BorderRadius.circular(8.0,),
+        badgeContent: Text(text, style: TextStyle(color: Colors.white)),
+      ) : null;
+    };
     Widget gradeCardMaker(int index, double cardWidth){
       return Container(
         width: cardWidth,
@@ -31,24 +53,20 @@ class HomeworkWidget extends StatelessWidget{
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
-                      trailing: r.nextBool()==false ? Badge(
-                        shape: BadgeShape.square,
-                        borderRadius: BorderRadius.circular(8.0,),
-                        badgeContent: Text("7 DAYS", style: TextStyle(color: Colors.white)),
-                      ) : null,
+                      trailing: trail(index),
                       leading: Icon(Icons.event_note),
                       title: Text(
                         temp[index]['courseName'],
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text("HW2"),
+                      subtitle: Text(temp[index]['hwName']),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          "Due on "+DateFormat('MMM d, y').format(DateTime.fromMillisecondsSinceEpoch(temp[index]['due'])),
+                          diff(index)>=0 ? "Due on "+DateFormat('MMM d, y').format(DateTime.fromMillisecondsSinceEpoch(temp[index]['due'])) : "DEADLINE PASSED",
                           style: TextStyle(fontSize: 25,),
                         ),
                       ),
@@ -65,8 +83,10 @@ class HomeworkWidget extends StatelessWidget{
                               child: const Text('EDIT', style: TextStyle(color: const Color(0xFF6200EE)),)
                           ),
                           TextButton(
-                              onPressed: (){},
-                              child: const Text('MARK AS COMPLETE', style: TextStyle(color: const Color(0xFF6200EE)),)
+                              onPressed: (){
+                                Provider.of<UserDB>(context,listen: false).completeHomework(temp[index]);
+                              },
+                              child: Text(diff(index)>=0 ? 'MARK AS COMPLETE' : 'ARCHIVE', style: TextStyle(color: const Color(0xFF6200EE)),)
                           ),
                         ],
                       ),
