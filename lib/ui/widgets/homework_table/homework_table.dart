@@ -12,21 +12,19 @@ import 'package:tasky/app/services/user_db.dart';
 class HomeworkWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-    //List temp = [];
-    //Provider.of<UserDB>(context).courseGradesMap.forEach((key, value) { temp.add([key,value[0],value[1]]); });
-
+    if(Provider.of<UserDB>(context).courseOrder.length==0){
+      //TODO: Instructions
+    }
     List temp = Provider.of<UserDB>(context).homeworkList;
     temp.sort((var a, var b) => a['due'].compareTo(b['due']));
     var courses = Provider.of<UserDB>(context).courseOrder;
-    var a = DateTime.now();
-    var b = DateTime(a.year,a.month,a.day);
-    var diff = (int index) => DateTime.fromMillisecondsSinceEpoch(temp[index]['due']).difference(b).inDays;
+    var currentTime = DateTime.now();
+    var diff = (int index) => DateTime.fromMillisecondsSinceEpoch(temp[index]['due']).difference(DateTime(currentTime.year,currentTime.month,currentTime.day)).inDays;
     var trail = (index){
       String text;
       if(diff(index)<0){
         return null;
       }
-
       if(diff(index)==0){
         text = 'TODAY';
       } else if(diff(index)==1){
@@ -37,11 +35,98 @@ class HomeworkWidget extends StatelessWidget{
       return diff(index)<=7 ? Badge(
         badgeColor: diff(index) > 3 ? Colors.orange : Colors.red,
         shape: BadgeShape.square,
-        borderRadius: BorderRadius.circular(8.0,),
+        borderRadius: BorderRadius.circular(8.0),
         badgeContent: Text(text, style: TextStyle(color: Colors.white)),
       ) : null;
     };
+
+    showHWDialog(String initCourseName, DateTime initDueDate, String initTaskName, Null Function(String, String, DateTime) onConfirm){
+      showDialog(
+          context: context,
+          builder: (BuildContext context){
+            String taskName = initTaskName;
+            DateTime dueDate = initDueDate;
+            var selectedCourse = initCourseName;
+            return StatefulBuilder(
+              builder: (context, setState){
+                return AlertDialog(
+                  title: Text("Enter Homework Details"),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8.0,),
+                        onTap: (){},
+                        child: DropdownButton(
+                          value: selectedCourse,
+                          items: courses.map((var x) => DropdownMenuItem(child: Text(x),value: x,)).toList(),
+                          hint: Text("Choose Course"),
+                          onChanged: (var x){
+                            setState((){
+                              selectedCourse = x;
+                            });
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                        child: TextFormField(
+                          controller: TextEditingController(text: taskName),
+                          decoration: InputDecoration(
+                            labelText: "Homework Name",
+                            hintText: "e.g. HW3",
+                          ),
+                          onChanged: (String str){
+                            taskName = str;
+                          },
+                        ),
+                      ),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8.0,),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.grey)) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
+                        ),
+                        onTap: () async{
+                          bool useInitDate = initDueDate.isAfter(DateTime.now());
+                          var inputDate = await showDatePicker(context: context, initialDate: useInitDate ? initDueDate : DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2101));
+                          setState((){
+                            if(inputDate!=null){
+                              dueDate = inputDate;
+                            }
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: (){
+                        Navigator.of(context).pop();
+                      },
+                      child: Text("Cancel"),
+                    ),
+                    TextButton(
+                        onPressed: (){
+                          if(selectedCourse==null||taskName==null||dueDate==null){
+                            return;
+                          }
+                          onConfirm(selectedCourse,taskName,dueDate);
+                          Navigator.of(context).pop();
+                        },
+                        child: Text("Confirm")
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+      );
+    }
+
     Widget gradeCardMaker(int index, double cardWidth){
+      var hwData = temp[index];
       return Container(
         width: cardWidth,
         child: Card(
@@ -56,17 +141,17 @@ class HomeworkWidget extends StatelessWidget{
                       trailing: trail(index),
                       leading: Icon(Icons.event_note),
                       title: Text(
-                        temp[index]['courseName'],
+                        hwData['courseName'],
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(temp[index]['hwName']),
+                      subtitle: Text(hwData['hwName']),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          diff(index)>=0 ? "Due on "+DateFormat('MMM d, y').format(DateTime.fromMillisecondsSinceEpoch(temp[index]['due'])) : "DEADLINE PASSED",
+                          diff(index)>=0 ? "Due on "+DateFormat('MMM d, y').format(DateTime.fromMillisecondsSinceEpoch(hwData['due'])) : "DEADLINE PASSED",
                           style: TextStyle(fontSize: 25,),
                         ),
                       ),
@@ -77,34 +162,19 @@ class HomeworkWidget extends StatelessWidget{
                         alignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           TextButton(
-                              onPressed: (){
-                                showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2101));
-                              },
+                              onPressed: () => showHWDialog(hwData['courseName'], DateTime.fromMillisecondsSinceEpoch(hwData['due']), hwData['hwName'],
+                                      (String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).editHomework(hwData,cn, tn, dt)),
                               child: const Text('EDIT', style: TextStyle(color: const Color(0xFF6200EE)),)
                           ),
                           TextButton(
                               onPressed: (){
-                                Provider.of<UserDB>(context,listen: false).completeHomework(temp[index]);
+                                Provider.of<UserDB>(context,listen: false).completeHomework(hwData);
                               },
                               child: Text(diff(index)>=0 ? 'MARK AS COMPLETE' : 'ARCHIVE', style: TextStyle(color: const Color(0xFF6200EE)),)
                           ),
                         ],
                       ),
                     )
-                    // Padding(
-                    //   padding: const EdgeInsets.all(8.0),
-                    //   child: Text(
-                    //     'Points: ' + temp[index][1].toString(),
-                    //     style: TextStyle(fontSize: 20),
-                    //   ),
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.all(8.0),
-                    //   child: Text(
-                    //     'Grade: ' + temp[index][2].toString(),
-                    //     style: TextStyle(fontSize: 20),
-                    //   ),
-                    // )
                   ],
                 ),
               ),
@@ -119,16 +189,6 @@ class HomeworkWidget extends StatelessWidget{
           ),
         ),
       );
-    }
-    int c;
-    if(MediaQuery.of(context).size.width/4<=150){
-      c=2;
-    } else if(MediaQuery.of(context).size.width/6<=150){
-      c=4;
-    } else if(MediaQuery.of(context).size.width/8<=150){
-      c=6;
-    } else {
-      c=8;
     }
 
     var homeworkContent = Expanded(
@@ -164,17 +224,6 @@ class HomeworkWidget extends StatelessWidget{
       // ],
     );
 
-    var oldContent = Center(
-      child: GridView.count(
-        childAspectRatio: 1,
-        crossAxisCount: c,
-        children: List.generate(
-            temp.length,
-                (index) => gradeCardMaker(index,MediaQuery.of(context).size.width/5)
-        ),
-      ),
-    );
-
     return Scaffold(
       appBar: AppBar(title: Center(child: Text("Homework")),),
       drawer: NavigationDrawer(),
@@ -182,89 +231,7 @@ class HomeworkWidget extends StatelessWidget{
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: (){
-          showDialog(
-              context: context,
-              builder: (BuildContext context){
-                String hwName;
-                double coursePoints=2;
-                double courseGrade=2;
-                DateTime dueDate;
-                var selectedCourse;
-                return StatefulBuilder(
-                  builder: (context, setState){
-                    return AlertDialog(
-                      title: Text("Enter Homework Details"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          InkWell(
-                            borderRadius: BorderRadius.circular(8.0,),
-                            onTap: (){},
-                            child: DropdownButton(
-                              value: selectedCourse,
-                              items: courses.map((var x) => DropdownMenuItem(child: Text(x),value: x,)).toList(),
-                              hint: Text("Choose Course"),
-                              onChanged: (var x){
-                                setState((){
-                                  selectedCourse = x;
-                                });
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Homework Name",
-                                hintText: "e.g. HW3"
-                              ),
-                              onChanged: (String str){
-                                hwName = str;
-                              },
-                            ),
-                          ),
-                          InkWell(
-                            borderRadius: BorderRadius.circular(8.0,),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.grey),) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
-                            ),
-                            onTap: () async{
-                              var inputDate = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2101));
-                              setState((){
-                                if(inputDate!=null){
-                                  dueDate = inputDate;
-                                }
-                              });
-                            },
-                          )
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: (){
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("Cancel"),
-                        ),
-                        TextButton(
-                            onPressed: (){
-                              if(selectedCourse==null||hwName==null||dueDate==null){
-                                return;
-                              }
-                              Provider.of<UserDB>(context,listen: false).addHomework(selectedCourse, hwName, dueDate);
-                              //Provider.of<UserDB>(context,listen: false).addCourseGrade(selected, coursePoints, courseGrade);
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Confirm")
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
-          );
+          showHWDialog(null, null, null,(String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).addHomework(cn, tn, dt));
         },
       ),
     );

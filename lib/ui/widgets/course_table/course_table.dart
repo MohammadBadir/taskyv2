@@ -264,7 +264,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                           ),
                           TextFormField(
                             decoration: InputDecoration(
-                              labelText: "    Course Name",
+                              labelText: "Course Name",
                             ),
                             onChanged: (String str){
                               courseName = str;

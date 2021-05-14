@@ -99,9 +99,16 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  completeHomework(Map hw) async{
+  completeHomework(Map hw){
     homeworkList.remove(hw);
-    await userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkList' : homeworkList});
+    notifyListeners();
+  }
+
+  editHomework(Map oldHW, String courseName, String hwName, DateTime dueDate){
+    homeworkList.remove(oldHW);
+    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch});
+    userDocument.update({'homeworkList' : homeworkList});
     notifyListeners();
   }
 
