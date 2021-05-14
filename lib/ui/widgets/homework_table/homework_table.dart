@@ -239,24 +239,6 @@ class HomeworkWidget extends StatelessWidget{
                               });
                             },
                           )
-                          // TextFormField(
-                          //   decoration: InputDecoration(
-                          //     labelText: "Points",
-                          //   ),
-                          //   onChanged: (String str){
-                          //     coursePoints = double.tryParse(str);
-                          //     coursePoints ??= int.tryParse(str)?.toDouble();
-                          //   },
-                          // ),
-                          // TextFormField(
-                          //   decoration: InputDecoration(
-                          //     labelText: "Grade",
-                          //   ),
-                          //   onChanged: (String str){
-                          //     courseGrade = double.tryParse(str);
-                          //     courseGrade ??= int.tryParse(str)?.toDouble();
-                          //   },
-                          // )
                         ],
                       ),
                       actions: [

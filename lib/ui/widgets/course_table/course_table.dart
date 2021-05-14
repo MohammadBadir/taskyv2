@@ -64,7 +64,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
     final double tableHeight = min(tableWidth/(2*columnCount)*rowCount,screenSize.height-AppBar().preferredSize.height);
 
     //Returns appropriate table unit for the given index in the Gridview
-    tableUnitMaker(index){
+    Widget tableUnitMaker(index){
 
       //Updates table unit with the given index to mark/unmark completed task
       toggleTableUnit(int index){
@@ -112,7 +112,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
           List auxListA = auxListMaker(courseOrder, courseProgressMap)[rowNum];
           List tempListA = (courseProgressMap[auxListA[0]])[auxListA[1]];
           if(tempListA.contains(placement)){
-            return FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.check));
+            return FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded));
           }
           if(tempListA.contains(placement+columnCount)){
             return FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,));
@@ -120,8 +120,21 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
           return null;
         }
 
+        //Auxillary function to check if current index is that of a pending entry
+        //TODO: Rewrite
+        bool isPending(int index){
+          int rowNum = -1 + index ~/ columnCount;
+          int placement = index % columnCount;
+          List auxListA = auxListMaker(courseOrder, courseProgressMap)[rowNum];
+          List tempListA = (courseProgressMap[auxListA[0]])[auxListA[1]];
+          if(tempListA.contains(placement+columnCount)){
+            return true;
+          } else {
+            return false;
+          }
+        }
+
         return Container(
-          child: Center(child: index<columnCount ? FittedBox(fit: BoxFit.scaleDown, child: Text((index-1).toString(), style: TextStyle(fontSize: 22))) : iconFromIndex(index)),
           decoration: BoxDecoration(
               color: index<columnCount ? Colors.greenAccent : null,
               border: Border(
@@ -130,6 +143,12 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                   top: BorderSide(width: index<columnCount ? 2 : 1),
                   bottom: BorderSide(width: index>=columnCount*(rowCount-1) ? 2 : 1)
               )
+          ),
+          child: FittedBox(
+            fit: index<columnCount ? BoxFit.scaleDown : (isPending(index) ? BoxFit.scaleDown : BoxFit.fitHeight),
+            child: Container(
+              child: Center(child: index<columnCount ? FittedBox(fit: BoxFit.scaleDown, child: Text((index-1).toString(), style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold))) : iconFromIndex(index)),
+            ),
           ),
         );
       }
