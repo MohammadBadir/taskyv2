@@ -89,7 +89,7 @@ class HomeworkWidget extends StatelessWidget{
                           child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.grey)) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
                         ),
                         onTap: () async{
-                          bool useInitDate = initDueDate.isAfter(DateTime.now());
+                          bool useInitDate = null != initDueDate?.isAfter(DateTime.now());
                           var inputDate = await showDatePicker(context: context, initialDate: useInitDate ? initDueDate : DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2101));
                           setState((){
                             if(inputDate!=null){
@@ -191,13 +191,22 @@ class HomeworkWidget extends StatelessWidget{
       );
     }
 
-    var homeworkContent = Expanded(
+    int horCount;
+    for(horCount=10; horCount>=0; --horCount){
+      if(MediaQuery.of(context).size.width/horCount>=300){
+        break;
+      }
+    }
+
+    int hwCount = temp.length;
+    print(hwCount);
+    Widget homeworkContent(int listIndex) => Expanded(
         child: Container(
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: List.generate(
-                temp.length,
-                    (index) => gradeCardMaker(index,MediaQuery.of(context).size.width/5)
+                listIndex < hwCount~/5 ? 3 : hwCount % 5,
+                    (index) => horCount==0 ? Container() : gradeCardMaker(index,MediaQuery.of(context).size.width/horCount)
             ),
           ),
         )
@@ -214,21 +223,30 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     var quadHome = Column(
-      children: List.generate(count, (index) => homeworkContent),
-      // children: [
-      //   Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
-      //   homeworkContent,
-      //   homeworkContent,
-      //   homeworkContent,
-      //   homeworkContent,
-      // ],
+      // children: List.generate(count, (index) => homeworkContent(0)),
+      children: [
+        Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
+        homeworkContent(0),
+        homeworkContent(0),
+        homeworkContent(0),
+        homeworkContent(0),
+      ],
     );
+
+    var content;
+    if (Provider.of<UserDB>(context).courseOrder.isEmpty) {
+      content = Text("No courses found. Add some in the Course Table tab!",style: TextStyle(fontSize: 24));
+    } else if (Provider.of<UserDB>(context).homeworkList.isEmpty) {
+      content = Text("Click on the Plus button to add assignments!",style: TextStyle(fontSize: 24));
+    } else {
+      content = quadHome;
+    }
 
     return Scaffold(
       appBar: AppBar(title: Center(child: Text("Homework")),),
       drawer: NavigationDrawer(),
-      body: quadHome,
-      floatingActionButton: FloatingActionButton(
+      body: Center(child: content),
+      floatingActionButton: Provider.of<UserDB>(context).courseOrder.isEmpty ? null : FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: (){
           showHWDialog(null, null, null,(String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).addHomework(cn, tn, dt));

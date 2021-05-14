@@ -93,9 +93,9 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  addHomework(String courseName, String hwName, DateTime dueDate) async{
+  addHomework(String courseName, String hwName, DateTime dueDate){
     homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch});
-    await userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkList' : homeworkList});
     notifyListeners();
   }
 
