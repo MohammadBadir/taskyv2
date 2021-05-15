@@ -199,18 +199,18 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     int hwCount = temp.length;
-    print(hwCount);
-    Widget homeworkContent(int listIndex) => Expanded(
-        child: Container(
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: List.generate(
-                listIndex < hwCount~/5 ? 3 : hwCount % 5,
-                    (index) => horCount==0 ? Container() : gradeCardMaker(index,MediaQuery.of(context).size.width/horCount)
-            ),
+    Widget homeworkContent(int listIndex) {
+      int displayCount = max(0,min(hwCount-listIndex*horCount,horCount));
+      return Container(
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: List.generate(
+              displayCount,
+                  (index) => gradeCardMaker(listIndex*horCount + index,MediaQuery.of(context).size.width/horCount)
           ),
-        )
-    );
+        ),
+      );
+    }
 
     int count;
     for(count=4; count>0; --count){
@@ -223,7 +223,7 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     var quadHome = ListView(
-      children: List.generate(count, (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: homeworkContent(0))),
+      children: List.generate(hwCount ~/ horCount + (hwCount%horCount>0 ? 1 : 0), (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: homeworkContent(index))),
       // children: [
       //   Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
       //   homeworkContent(0),
