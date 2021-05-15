@@ -192,7 +192,7 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     int horCount;
-    for(horCount=10; horCount>=0; --horCount){
+    for(horCount=6; horCount>=0; --horCount){
       if(MediaQuery.of(context).size.width/horCount>=300){
         break;
       }
@@ -222,15 +222,15 @@ class HomeworkWidget extends StatelessWidget{
       //TODO: Display "Window too small message"
     }
 
-    var quadHome = Column(
-      // children: List.generate(count, (index) => homeworkContent(0)),
-      children: [
-        Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
-        homeworkContent(0),
-        homeworkContent(0),
-        homeworkContent(0),
-        homeworkContent(0),
-      ],
+    var quadHome = ListView(
+      children: List.generate(count, (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: homeworkContent(0))),
+      // children: [
+      //   Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
+      //   homeworkContent(0),
+      //   homeworkContent(0),
+      //   homeworkContent(0),
+      //   homeworkContent(0),
+      // ],
     );
 
     var content;
