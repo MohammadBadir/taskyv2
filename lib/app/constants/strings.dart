@@ -1,7 +1,7 @@
 class Strings {
   // App
   static const String appName = 'Firebase Auth Demo';
-  static const String version = 'v0.3.0';
+  static const String version = 'v0.3.1';
 
   // Authentication
   static const String signInMessage = 'Please sign in to continue';
