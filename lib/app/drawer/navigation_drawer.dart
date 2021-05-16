@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/models/user_data.dart';
 import 'package:tasky/app/services/firebase_auth_service.dart';
 import 'package:tasky/app/services/user_db.dart';
@@ -11,7 +12,20 @@ import 'package:tasky/ui/widgets/home/home_widget.dart';
 class NavigationDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Drawer(child: ListView(children: [Container(
+    return Drawer(child: ListView(children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              Strings.version,
+              style: Theme.of(context).textTheme.headline6,
+            ),
+          ),
+        ],
+      ),
+      Container(
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -86,8 +100,7 @@ class NavigationDrawer extends StatelessWidget {
             },
           ),
         );
-      },)
-
+      },),
     ],
     ),
     );

@@ -32,6 +32,9 @@ class SignInViewBody extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Text(
+              Strings.welcomeToTasky,
+              style: Theme.of(context).textTheme.headline4),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
@@ -40,6 +43,13 @@ class SignInViewBody extends StatelessWidget {
             ),
           ),
           isLoading ? _loadingIndicator() : _signInButtons(context),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              Strings.version,
+              style: Theme.of(context).textTheme.headline6,
+            ),
+          )
         ],
       ),
     );

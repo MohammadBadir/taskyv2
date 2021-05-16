@@ -192,7 +192,7 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     int horCount;
-    for(horCount=6; horCount>=0; --horCount){
+    for(horCount=6; horCount>0; --horCount){
       if(MediaQuery.of(context).size.width/horCount>=300){
         break;
       }
@@ -212,6 +212,7 @@ class HomeworkWidget extends StatelessWidget{
       );
     }
 
+    var quadHome;
     int count;
     for(count=4; count>0; --count){
       if((MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count>=173){
@@ -220,18 +221,19 @@ class HomeworkWidget extends StatelessWidget{
     }
     if(count==0){
       //TODO: Display "Window too small message"
+      quadHome = Container();
+    } else {
+      quadHome = ListView(
+        children: List.generate(hwCount ~/ horCount + (hwCount%horCount>0 ? 1 : 0), (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: homeworkContent(index))),
+        // children: [
+        //   Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
+        //   homeworkContent(0),
+        //   homeworkContent(0),
+        //   homeworkContent(0),
+        //   homeworkContent(0),
+        // ],
+      );
     }
-
-    var quadHome = ListView(
-      children: List.generate(hwCount ~/ horCount + (hwCount%horCount>0 ? 1 : 0), (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: homeworkContent(index))),
-      // children: [
-      //   Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
-      //   homeworkContent(0),
-      //   homeworkContent(0),
-      //   homeworkContent(0),
-      //   homeworkContent(0),
-      // ],
-    );
 
     var content;
     if (Provider.of<UserDB>(context).courseOrder.isEmpty) {
