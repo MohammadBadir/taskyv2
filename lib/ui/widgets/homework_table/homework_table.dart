@@ -89,7 +89,8 @@ class HomeworkWidget extends StatelessWidget{
                           child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.grey)) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
                         ),
                         onTap: () async{
-                          bool useInitDate = null != initDueDate?.isAfter(DateTime.now());
+                          bool useInitDate;
+                          useInitDate = initDueDate?.isAfter(DateTime.now()) ?? false;
                           var inputDate = await showDatePicker(context: context, initialDate: useInitDate ? initDueDate : DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2101));
                           setState((){
                             if(inputDate!=null){
