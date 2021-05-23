@@ -1,16 +1,13 @@
-# tasky
+# Tasky
 
-A task management and schedule keeping app
+Tasky is an app designed to help keep track of your course schedules and assignments.
 
-## Getting Started
+# Release 0.3
 
-This project is a starting point for a Flutter application.
+- Added new Homework tab
 
-A few resources to get you started if this is your first Flutter project:
+## Getting Started with Source Code
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+Create a new Flutter Project in Android Studio, then import the project.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Use the "flutter create ." command to initialize web files, and the "flutter run -d chrome" command to launch the client.
