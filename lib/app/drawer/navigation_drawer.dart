@@ -8,6 +8,7 @@ import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:tasky/ui/widgets/course_table/course_table.dart';
 import 'package:tasky/ui/widgets/homework_table/homework_table.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
+import 'package:tasky/ui/widgets/new_course_table/new_course_table.dart';
 
 class NavigationDrawer extends StatelessWidget {
   @override
@@ -87,6 +88,16 @@ class NavigationDrawer extends StatelessWidget {
           MaterialPageRoute(
             builder: (BuildContext context) {
               return CourseTableWidget();
+            },
+          ),
+        );
+      },),
+      ListTile(title: Text("  New Course Table"),onTap: (){
+        Navigator.of(context).pop();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (BuildContext context) {
+              return NewCourseTableWidget();
             },
           ),
         );
