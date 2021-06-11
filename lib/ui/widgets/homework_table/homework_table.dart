@@ -12,28 +12,27 @@ import 'package:tasky/app/services/user_db.dart';
 class HomeworkWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-    if(Provider.of<UserDB>(context).courseOrder.length==0){
-      //TODO: Instructions
-    }
-    List temp = Provider.of<UserDB>(context).homeworkList;
-    temp.sort((var a, var b) => a['due'].compareTo(b['due']));
-    var courses = Provider.of<UserDB>(context).courseOrder;
+    //Auxiliary declarations
+    List sortedTaskList = Provider.of<UserDB>(context).taskList;
+    sortedTaskList.sort((var a, var b) => a['due'].compareTo(b['due']));
+    var courseList = Provider.of<UserDB>(context).courseOrder;
     var currentTime = DateTime.now();
-    var diff = (int index) => DateTime.fromMillisecondsSinceEpoch(temp[index]['due']).difference(DateTime(currentTime.year,currentTime.month,currentTime.day)).inDays;
-    var trail = (index){
+    int timeDiff(int index) => DateTime.fromMillisecondsSinceEpoch(sortedTaskList[index]['due']).difference(DateTime(currentTime.year,currentTime.month,currentTime.day)).inDays;
+    var remainingTimeBadge = (int index){
       String text;
-      if(diff(index)<0){
+      if(timeDiff(index)<0){
         return null;
       }
-      if(diff(index)==0){
+      if(timeDiff(index)==0){
         text = 'TODAY';
-      } else if(diff(index)==1){
-        text = diff(index).toString() + ' DAY';
+      } else if(timeDiff(index)==1){
+        text = timeDiff(index).toString() + ' DAY';
       } else {
-        text = diff(index).toString() + ' DAYS';
+        text = timeDiff(index).toString() + ' DAYS';
       }
-      return diff(index)<=7 ? Badge(
-        badgeColor: diff(index) > 3 ? Colors.orange : Colors.red,
+      return (sortedTaskList[index]['taskType']=='exam' || timeDiff(index)<=7) ? Badge(
+        badgeColor: timeDiff(index) > 7 ? Color(0xFF23CD0C) : (timeDiff(index) > 3 ? Color(
+            0xFFFFBF00) : Colors.red),
         shape: BadgeShape.square,
         borderRadius: BorderRadius.circular(8.0),
         badgeContent: Text(text, style: TextStyle(color: Colors.white)),
@@ -60,7 +59,7 @@ class HomeworkWidget extends StatelessWidget{
                         onTap: (){},
                         child: DropdownButton(
                           value: selectedCourse,
-                          items: courses.map((var x) => DropdownMenuItem(child: Text(x),value: x,)).toList(),
+                          items: courseList.map((var x) => DropdownMenuItem(child: Text(x),value: x,)).toList(),
                           hint: Text("Choose Course"),
                           onChanged: (var x){
                             setState((){
@@ -86,7 +85,7 @@ class HomeworkWidget extends StatelessWidget{
                         borderRadius: BorderRadius.circular(8.0,),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.grey)) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
+                          child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.lightBlue)) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
                         ),
                         onTap: () async{
                           bool useInitDate;
@@ -126,65 +125,68 @@ class HomeworkWidget extends StatelessWidget{
       );
     }
 
-    Widget gradeCardMaker(int index, double cardWidth){
-      var hwData = temp[index];
+    Widget taskCardMaker(int index, double cardWidth){
+      var borderColor = sortedTaskList[index]['taskType']=='hw' ? Colors.blueAccent : Colors.black;
+      var buttonColor = sortedTaskList[index]['taskType']=='hw' ? const Color(0xFF6200EE) : const Color(0xFF000000);
+      var hwData = sortedTaskList[index];
+      var content = Container(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                trailing: remainingTimeBadge(index),
+                leading: Icon(sortedTaskList[index]['taskType']=='hw' ? Icons.event_note : Icons.assignment_outlined),
+                title: Text(
+                  hwData['courseName'],
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(hwData['hwName']),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    timeDiff(index)>=0 ? "Due on "+DateFormat('MMM d, y').format(DateTime.fromMillisecondsSinceEpoch(hwData['due'])) : "DEADLINE PASSED",
+                    style: TextStyle(fontSize: 25,),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: ButtonBar(
+                  alignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                        onPressed: () => showHWDialog(hwData['courseName'], DateTime.fromMillisecondsSinceEpoch(hwData['due']), hwData['hwName'],
+                                (String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).editHomework(hwData,cn, tn, dt)),
+                        child: Text('EDIT', style: TextStyle(color: buttonColor),)
+                    ),
+                    TextButton(
+                        onPressed: (){
+                          Provider.of<UserDB>(context,listen: false).completeHomework(hwData);
+                        },
+                        child: Text(timeDiff(index)>=0 ? 'MARK AS COMPLETE' : 'ARCHIVE', style: TextStyle(color: buttonColor),)
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+        // height: 100,
+        decoration: BoxDecoration(
+            border: Border(bottom:BorderSide(color: borderColor, width: 5) ,top: BorderSide(color: borderColor, width: 5))
+        ),
+      )
+      ;
       return Container(
         width: cardWidth,
         child: Card(
-          color: Colors.white,
+          color: sortedTaskList[index]['taskType'] == 'hw' ? Colors.white : Colors.white,
           child: ClipPath(
-            child: Container(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      trailing: trail(index),
-                      leading: Icon(Icons.event_note),
-                      title: Text(
-                        hwData['courseName'],
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(hwData['hwName']),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          diff(index)>=0 ? "Due on "+DateFormat('MMM d, y').format(DateTime.fromMillisecondsSinceEpoch(hwData['due'])) : "DEADLINE PASSED",
-                          style: TextStyle(fontSize: 25,),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: ButtonBar(
-                        alignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          TextButton(
-                              onPressed: () => showHWDialog(hwData['courseName'], DateTime.fromMillisecondsSinceEpoch(hwData['due']), hwData['hwName'],
-                                      (String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).editHomework(hwData,cn, tn, dt)),
-                              child: const Text('EDIT', style: TextStyle(color: const Color(0xFF6200EE)),)
-                          ),
-                          TextButton(
-                              onPressed: (){
-                                Provider.of<UserDB>(context,listen: false).completeHomework(hwData);
-                              },
-                              child: Text(diff(index)>=0 ? 'MARK AS COMPLETE' : 'ARCHIVE', style: TextStyle(color: const Color(0xFF6200EE)),)
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              // height: 100,
-              decoration: BoxDecoration(
-                  border: Border(bottom:BorderSide(color: Colors.blueAccent, width: 5) ,top: BorderSide(color: Colors.blueAccent, width: 5))
-              ),
-            )
-            ,
+            child: sortedTaskList[index]['taskType']=='hw' ? content : Banner(message: "EXAM", location: BannerLocation.topEnd, color: Colors.red, child: content,)            ,
             clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(3))),
           ),
@@ -199,7 +201,7 @@ class HomeworkWidget extends StatelessWidget{
       }
     }
 
-    int hwCount = temp.length;
+    int hwCount = sortedTaskList.length;
     Widget homeworkContent(int listIndex) {
       int displayCount = max(0,min(hwCount-listIndex*horCount,horCount));
       return Container(
@@ -207,7 +209,7 @@ class HomeworkWidget extends StatelessWidget{
           scrollDirection: Axis.horizontal,
           children: List.generate(
               displayCount,
-                  (index) => gradeCardMaker(listIndex*horCount + index,MediaQuery.of(context).size.width/horCount)
+                  (index) => taskCardMaker(listIndex*horCount + index,MediaQuery.of(context).size.width/horCount)
           ),
         ),
       );
@@ -239,7 +241,7 @@ class HomeworkWidget extends StatelessWidget{
     var content;
     if (Provider.of<UserDB>(context).courseOrder.isEmpty) {
       content = Text("No courses found. Add some in the Course Table tab!",style: TextStyle(fontSize: 24));
-    } else if (Provider.of<UserDB>(context).homeworkList.isEmpty) {
+    } else if (Provider.of<UserDB>(context).taskList.isEmpty) {
       content = Text("Click on the Plus button to add assignments!",style: TextStyle(fontSize: 24));
     } else {
       content = quadHome;

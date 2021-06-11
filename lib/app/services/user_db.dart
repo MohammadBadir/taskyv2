@@ -11,6 +11,7 @@ class UserDB extends ChangeNotifier {
   int debugNum = 0;
   Map courseGradesMap;
   List homeworkList;
+  List taskList;
 
   downloadCourseData() async{
     print("Download");
@@ -34,7 +35,7 @@ class UserDB extends ChangeNotifier {
       await userDocument.set({'courseOrder' : courseOrder,'courseProgressMap' : courseProgressMap});
     }
 
-    //Backwards compatibility
+    //Backwards compatibility - Grades map and Homework List
     try{
       courseGradesMap = userSnapshot.get('courseGradesMap');
       homeworkList = userSnapshot.get('homeworkList');
@@ -43,6 +44,15 @@ class UserDB extends ChangeNotifier {
       homeworkList = [];
       await userDocument.update({'courseGradesMap' : courseGradesMap});
       await userDocument.update({'homeworkList' : homeworkList});
+    }
+
+    //Backwards Compatibility - Other tasks
+    try{
+      taskList = userSnapshot.get('taskList');
+    } catch(e){
+      print(e.runtimeType);
+      taskList = homeworkList.map((e) => {'courseName' : e['courseName'],'hwName':e['hwName'],'due' : e['due'], 'taskType' : 'hw'}).toList();
+      await userDocument.update({'taskList' : taskList});
     }
 
   }
@@ -94,21 +104,21 @@ class UserDB extends ChangeNotifier {
   }
 
   addHomework(String courseName, String hwName, DateTime dueDate){
-    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch});
-    userDocument.update({'homeworkList' : homeworkList});
+    taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : 'hw'});
+    userDocument.update({'taskList' : taskList});
     notifyListeners();
   }
 
   completeHomework(Map hw){
-    homeworkList.remove(hw);
-    userDocument.update({'homeworkList' : homeworkList});
+    taskList.remove(hw);
+    userDocument.update({'taskList' : taskList});
     notifyListeners();
   }
 
   editHomework(Map oldHW, String courseName, String hwName, DateTime dueDate){
-    homeworkList.remove(oldHW);
-    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch});
-    userDocument.update({'homeworkList' : homeworkList});
+    taskList.remove(oldHW);
+    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : 'hw'});
+    userDocument.update({'taskList' : taskList});
     notifyListeners();
   }
 
