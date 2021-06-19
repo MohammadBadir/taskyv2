@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/services/user_db.dart';
 
-class HomeworkWidget extends StatelessWidget{
+class TaskWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     //Auxiliary declarations
@@ -39,17 +39,18 @@ class HomeworkWidget extends StatelessWidget{
       ) : null;
     };
 
-    showHWDialog(String initCourseName, DateTime initDueDate, String initTaskName, Null Function(String, String, DateTime) onConfirm){
+    showHWDialog(String initCourseName, DateTime initDueDate, String initTaskName, String initTaskType, Null Function(String, String, DateTime, String) onConfirm){
       showDialog(
           context: context,
           builder: (BuildContext context){
             String taskName = initTaskName;
             DateTime dueDate = initDueDate;
-            var selectedCourse = initCourseName;
+            String selectedCourse = initCourseName;
+            String taskType = initTaskType;
             return StatefulBuilder(
               builder: (context, setState){
                 return AlertDialog(
-                  title: Text("Enter Homework Details"),
+                  title: Text("Enter Task Details"),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +74,7 @@ class HomeworkWidget extends StatelessWidget{
                         child: TextFormField(
                           controller: TextEditingController(text: taskName),
                           decoration: InputDecoration(
-                            labelText: "Homework Name",
+                            labelText: "Task Name",
                             hintText: "e.g. HW3",
                           ),
                           onChanged: (String str){
@@ -97,6 +98,46 @@ class HomeworkWidget extends StatelessWidget{
                             }
                           });
                         },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                        child: Text("Task Type:"),
+                      ),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8.0,),
+                        child: IgnorePointer(
+                          child: ListTile(
+                            title: Text("Homework"),
+                            leading: Radio<String>(
+                              value: "hw",
+                              groupValue: taskType,
+                              onChanged: (String value){ },
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          setState((){
+                            taskType = "hw";
+                          });
+                        },
+                      ),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8.0,),
+                        child: IgnorePointer(
+                          child: ListTile(
+                            title: Text("Exam"),
+                            leading: Radio<String>(
+                              value: "exam",
+                              groupValue: taskType,
+                              onChanged: (String value){ },
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          setState((){
+                            taskType = "exam";
+                          });
+                        },
                       )
                     ],
                   ),
@@ -109,10 +150,10 @@ class HomeworkWidget extends StatelessWidget{
                     ),
                     TextButton(
                         onPressed: (){
-                          if(selectedCourse==null||taskName==null||dueDate==null){
+                          if(selectedCourse==null||taskName==null||dueDate==null||taskType==null){
                             return;
                           }
-                          onConfirm(selectedCourse,taskName,dueDate);
+                          onConfirm(selectedCourse,taskName,dueDate,taskType);
                           Navigator.of(context).pop();
                         },
                         child: Text("Confirm")
@@ -159,13 +200,13 @@ class HomeworkWidget extends StatelessWidget{
                   alignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     TextButton(
-                        onPressed: () => showHWDialog(hwData['courseName'], DateTime.fromMillisecondsSinceEpoch(hwData['due']), hwData['hwName'],
-                                (String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).editHomework(hwData,cn, tn, dt)),
+                        onPressed: () => showHWDialog(hwData['courseName'], DateTime.fromMillisecondsSinceEpoch(hwData['due']), hwData['hwName'], hwData['taskType'],
+                                (String cn, String tn, DateTime dt, String tt) => Provider.of<UserDB>(context,listen: false).editTask(hwData,cn, tn, dt, tt)),
                         child: Text('EDIT', style: TextStyle(color: buttonColor),)
                     ),
                     TextButton(
                         onPressed: (){
-                          Provider.of<UserDB>(context,listen: false).completeHomework(hwData);
+                          Provider.of<UserDB>(context,listen: false).completeTask(hwData);
                         },
                         child: Text(timeDiff(index)>=0 ? 'MARK AS COMPLETE' : 'ARCHIVE', style: TextStyle(color: buttonColor),)
                     ),
@@ -202,7 +243,7 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     int hwCount = sortedTaskList.length;
-    Widget homeworkContent(int listIndex) {
+    Widget taskContent(int listIndex) {
       int displayCount = max(0,min(hwCount-listIndex*horCount,horCount));
       return Container(
         child: ListView(
@@ -227,7 +268,7 @@ class HomeworkWidget extends StatelessWidget{
       quadHome = Container();
     } else {
       quadHome = ListView(
-        children: List.generate(hwCount ~/ horCount + (hwCount%horCount>0 ? 1 : 0), (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: homeworkContent(index))),
+        children: List.generate(hwCount ~/ horCount + (hwCount%horCount>0 ? 1 : 0), (index) => Container(height: (MediaQuery.of(context).size.height-AppBar().preferredSize.height)/count,child: taskContent(index))),
         // children: [
         //   Text("height" + MediaQuery.of(context).size.height.toString() + "Width" + MediaQuery.of(context).size.width.toString()),
         //   homeworkContent(0),
@@ -248,13 +289,13 @@ class HomeworkWidget extends StatelessWidget{
     }
 
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("Homework")),),
+      appBar: AppBar(title: Center(child: Text("Upcoming Tasks")),),
       drawer: NavigationDrawer(),
       body: Center(child: content),
       floatingActionButton: Provider.of<UserDB>(context).courseOrder.isEmpty ? null : FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: (){
-          showHWDialog(null, null, null,(String cn, String tn, DateTime dt) => Provider.of<UserDB>(context,listen: false).addHomework(cn, tn, dt));
+          showHWDialog(null, null, null, "hw",(String cn, String tn, DateTime dt, String tt) => Provider.of<UserDB>(context,listen: false).addTask(cn, tn, dt, tt));
         },
       ),
     );

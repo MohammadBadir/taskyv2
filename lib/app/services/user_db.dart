@@ -103,21 +103,21 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  addHomework(String courseName, String hwName, DateTime dueDate){
-    taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : 'hw'});
+  addTask(String courseName, String hwName, DateTime dueDate, String taskType){
+    taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
     userDocument.update({'taskList' : taskList});
     notifyListeners();
   }
 
-  completeHomework(Map hw){
+  completeTask(Map hw){
     taskList.remove(hw);
     userDocument.update({'taskList' : taskList});
     notifyListeners();
   }
 
-  editHomework(Map oldHW, String courseName, String hwName, DateTime dueDate){
+  editTask(Map oldHW, String courseName, String hwName, DateTime dueDate, String taskType){
     taskList.remove(oldHW);
-    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : 'hw'});
+    taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
     userDocument.update({'taskList' : taskList});
     notifyListeners();
   }
