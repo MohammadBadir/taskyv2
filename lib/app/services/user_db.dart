@@ -9,52 +9,42 @@ class UserDB extends ChangeNotifier {
   List courseOrder;
   DocumentReference userDocument;
   int debugNum = 0;
-  Map courseGradesMap;
+  // Map courseGradesMap;
   List homeworkList;
   List taskList;
 
   downloadCourseData() async{
-    print("Download");
+    print("Fetching Data");
     assert(FirebaseAuth.instance.currentUser != null);
     String uid = FirebaseAuth.instance.currentUser.uid;
     userDocument = FirebaseFirestore.instance.collection('testCollection').doc(uid);
-    DocumentSnapshot userSnapshot;
-    try{
-      userSnapshot = await userDocument.get();
-    } catch(e){
-      userDocument.set({});
-      userSnapshot = await userDocument.get();
-    }
-
-    try{
-      courseOrder = userSnapshot.get('courseOrder');
-      courseProgressMap = userSnapshot.get('courseProgressMap');
-    } catch (e){
+    DocumentSnapshot userSnapshot = await userDocument.get();
+    if(!userSnapshot.exists){
       courseOrder = [];
       courseProgressMap = {};
       await userDocument.set({'courseOrder' : courseOrder,'courseProgressMap' : courseProgressMap});
+    } else {
+      Map<String, dynamic> userData = userSnapshot.data();
+      courseOrder = userData['courseOrder'];
+      courseProgressMap = userData['courseProgressMap'];
     }
 
-    //Backwards compatibility - Grades map and Homework List
-    try{
-      courseGradesMap = userSnapshot.get('courseGradesMap');
-      homeworkList = userSnapshot.get('homeworkList');
-    } catch(e){
-      courseGradesMap = {};
-      homeworkList = [];
-      await userDocument.update({'courseGradesMap' : courseGradesMap});
-      await userDocument.update({'homeworkList' : homeworkList});
-    }
-
-    //Backwards Compatibility - Other tasks
-    try{
-      taskList = userSnapshot.get('taskList');
-    } catch(e){
-      print(e.runtimeType);
-      taskList = homeworkList.map((e) => {'courseName' : e['courseName'],'hwName':e['hwName'],'due' : e['due'], 'taskType' : 'hw'}).toList();
+    Map<String, dynamic> userData = userSnapshot.data();
+    //Backwards compatibility - Task List
+    if(!userData.containsKey('taskList')){
+      if(userData.containsKey('homeworkList')){
+        homeworkList = userData['homeworkList'];
+        taskList = homeworkList.map((e) => {'courseName' : e['courseName'],'hwName':e['hwName'],'due' : e['due'], 'taskType' : 'hw'}).toList();
+      } else {
+        taskList = [];
+      }
       await userDocument.update({'taskList' : taskList});
+    } else {
+      taskList = userData['taskList'];
     }
 
+    await userDocument.update({'lastLogin' : DateTime.now().toString()});
+    print("Data Fetched");
   }
 
   updateProgressMap(Map newMap){
@@ -97,11 +87,11 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  addCourseGrade(String courseName, double points, double grade) async{
-    courseGradesMap[courseName]=[points,grade];
-    await userDocument.update({'courseGradesMap' : courseGradesMap});
-    notifyListeners();
-  }
+  // addCourseGrade(String courseName, double points, double grade) async{
+  //   courseGradesMap[courseName]=[points,grade];
+  //   await userDocument.update({'courseGradesMap' : courseGradesMap});
+  //   notifyListeners();
+  // }
 
   addTask(String courseName, String hwName, DateTime dueDate, String taskType){
     taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
