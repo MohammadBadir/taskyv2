@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
@@ -29,6 +30,7 @@ class UserDB extends ChangeNotifier {
       courseProgressMap = userData['courseProgressMap'];
     }
 
+    userSnapshot = await userDocument.get();
     Map<String, dynamic> userData = userSnapshot.data();
     //Backwards compatibility - Task List
     if(!userData.containsKey('taskList')){
@@ -43,7 +45,7 @@ class UserDB extends ChangeNotifier {
       taskList = userData['taskList'];
     }
 
-    await userDocument.update({'lastLogin' : DateTime.now().toString()});
+    await userDocument.update({'zMiscData' : {'lastLogin' : DateTime.now().toString(), 'currentVer' : Strings.version}});
     print("Data Fetched");
   }
 
