@@ -1,10 +1,11 @@
 # Tasky
 
-Tasky is an app designed to help keep track of your course schedules and assignments.
+Tasky is a webapp designed to help you keep track of your course schedules and assignments.
 
-# Release 0.3
+# Release 0.3.4
 
-- Added new Homework tab
+- Added exam option to Task Tab
+- Fixed Database reset bug
 
 ## Getting Started with Source Code
 
