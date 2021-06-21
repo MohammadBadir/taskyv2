@@ -8,7 +8,7 @@ class NewCourseTableWidget extends StatefulWidget{
 }
 
 class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
-  Widget cardMaker(Widget content, double cardHeight){
+  Widget cardMaker(Widget content, double cardHeight, {bool includeBorders = false}){
     return Container(
       width: MediaQuery.of(context).size.width,
       height: cardHeight,
@@ -17,6 +17,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
         child: ClipPath(
           child: Container(
             child: content,
+            decoration: includeBorders ? BoxDecoration(
+                border: Border(bottom:BorderSide(color: Colors.blueAccent, width: 5) ,top: BorderSide(color: Colors.blueAccent, width: 5))
+            ) : null,
           ),
           clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(3))
@@ -28,60 +31,86 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Widget weekRow;
-    Widget listThing = Container(
-      color: Colors.blueAccent,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: List.generate(16, (index) => Container(
-          margin: EdgeInsets.fromLTRB(2.5, 5, 2.5, 5),
-          child: Center(child: Text((index+1).toString(),style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),)),
-          width: (MediaQuery.of(context).size.width-10)/16-5,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(3),
-            color: Colors.white
-          ),
-        )
-        ),
+    Widget weekRow = Container(
+      color: Colors.green,
+      child: Row(
+        children: List.generate(
+            29,
+            (index) => index % 2 == 0
+                ? Container(
+                    width: 5,
+                    color: Colors.blueAccent,
+                  )
+                : Expanded(
+                    child: Container(
+                      child: Center(
+                          child: Text(
+                        index == 1 ? "Course" : (index ~/ 2).toString(),
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                      )),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(3),
+                          color: Colors.white),
+                    ),
+                    flex: index == 1 ? 3 : 1,
+                  )),
       ),
     );
+    // Widget listThing = Container(
+    //   color: Colors.blueAccent,
+    //   child: ListView(
+    //     scrollDirection: Axis.horizontal,
+    //     children: List.generate(16, (index) => Container(
+    //       margin: EdgeInsets.fromLTRB(2.5, 5, 2.5, 5),
+    //       child: Center(child: Text((index+1).toString(),style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),)),
+    //       width: (MediaQuery.of(context).size.width-10)/16-5,
+    //       decoration: BoxDecoration(
+    //         borderRadius: BorderRadius.circular(3),
+    //         color: Colors.white
+    //       ),
+    //     )
+    //     ),
+    //   ),
+    // );
 
     return Scaffold(
       appBar: AppBar(title: Center(child: Text("New Course Table")),),
       drawer: NavigationDrawer(),
       body: Column(
         children: [
-          cardMaker(listThing, 50),
-          cardMaker(Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text("  Jimmy", style: TextStyle(fontSize: 25,),)
-            ],
-          ), 100),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 100,
-            child: Card(
-              color: Colors.white,
-              child: ClipPath(
-                child: Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text("  Compilation", style: TextStyle(fontSize: 25,),)
-                    ],
-                  ),
-                  // height: 100,
-                  decoration: BoxDecoration(
-                      border: Border(bottom:BorderSide(color: Colors.blueAccent, width: 5) ,top: BorderSide(color: Colors.blueAccent, width: 5))
-                  ),
-                )
-                ,
-                clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(3))),
+          cardMaker(weekRow, 50, includeBorders: true),
+          // cardMaker(Row(
+          //   mainAxisAlignment: MainAxisAlignment.start,
+          //   children: [
+          //     Text("  Jimmy", style: TextStyle(fontSize: 25,),)
+          //   ],
+          // ), 100),
+          cardMaker(
+              Row(
+                children: List.generate(
+                    29,
+                    (index) => index % 2 == 0
+                        ? Container(
+                            width: 5,
+                            color: Colors.white,
+                            child: VerticalDivider(),
+                          )
+                        : Expanded(
+                            child: Container(
+                              child: Center(
+                                  child: index <= 2 ? Text(
+                                    index == 1 ? "Software Design" : (index ~/ 2).toString(),
+                                    style: TextStyle(
+                                        fontSize: 24, fontWeight: FontWeight.bold),
+                                  ) :Column(children: [Expanded(child: InkWell(onTap:(){},child: Container())),Container(height: 5, child: Divider(),),Expanded(child: InkWell(onTap:(){},child: Container()))],)),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(3),),
+                            ),
+                            flex: index == 1 ? 3 : 1,
+                          )),
               ),
-            ),
-          ),
+              100, includeBorders: true),
           Container(
             width: MediaQuery.of(context).size.width,
             height: 100,
