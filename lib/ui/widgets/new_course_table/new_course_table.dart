@@ -93,14 +93,15 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                     (index) => index % 2 == 0
                         ? Container(
                             width: 5,
-                            color: Colors.white,
-                            child: VerticalDivider(),
+                            color: index==0 || index==28 ? Colors.blueAccent : Colors.white,
+                            child: index==0 || index==28 ? null : VerticalDivider(),
                           )
                         : Expanded(
                             child: Container(
                               child: Center(
                                   child: index <= 2 ? Text(
-                                    index == 1 ? "Software Design" : (index ~/ 2).toString(),
+                                    index == 1 ? "Introduction to Computer Science" : (index ~/ 2).toString(),
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontSize: 24, fontWeight: FontWeight.bold),
                                   ) :Column(children: [Expanded(child: InkWell(onTap:(){},child: Container())),Container(height: 5, child: Divider(),),Expanded(child: InkWell(onTap:(){},child: Container()))],)),
@@ -111,6 +112,32 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                           )),
               ),
               100, includeBorders: true),
+          cardMaker(
+              Row(
+                children: List.generate(
+                    29,
+                        (index) => index % 2 == 0
+                        ? Container(
+                      width: 5,
+                      color: index==0 || index==28 ? Colors.blueAccent : Colors.white,
+                      child: index==0 || index==28 ? null : VerticalDivider(),
+                    )
+                        : Expanded(
+                      child: Container(
+                        child: Center(
+                            child: index <= 2 ? Text(
+                              index == 1 ? "Introduction to Computer Science" : (index ~/ 2).toString(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            ) :Column(children: [Expanded(child: InkWell(onTap:(){},child: Container())),Container(height: 5, child: Divider(),),Expanded(child: InkWell(onTap:(){},child: Container())),Container(height: 5, child: Divider(),),Expanded(child: InkWell(onTap:(){},child: Container()))],)),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(3),),
+                      ),
+                      flex: index == 1 ? 3 : 1,
+                    )),
+              ),
+              150, includeBorders: true),
           Container(
             width: MediaQuery.of(context).size.width,
             height: 100,
