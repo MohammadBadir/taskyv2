@@ -35,7 +35,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       color: Colors.green,
       child: Row(
         children: List.generate(
-            29,
+            31,
             (index) => index % 2 == 0
                 ? Container(
                     width: 5,
@@ -89,12 +89,12 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
           cardMaker(
               Row(
                 children: List.generate(
-                    29,
+                    31,
                     (index) => index % 2 == 0
                         ? Container(
                             width: 5,
-                            color: index==0 || index==28 ? Colors.blueAccent : Colors.white,
-                            child: index==0 || index==28 ? null : VerticalDivider(),
+                            color: index==0 || index==30 ? Colors.white : Colors.white,
+                            child: index==0 || index==30 || index == 2 ? null : VerticalDivider(),
                           )
                         : Expanded(
                             child: Container(
@@ -104,7 +104,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         fontSize: 24, fontWeight: FontWeight.bold),
-                                  ) :Column(children: [Expanded(child: InkWell(onTap:(){},child: Container())),Container(height: 5, child: Divider(),),Expanded(child: InkWell(onTap:(){},child: Container()))],)),
+                                  ) :Column(children: [Expanded(child: InkWell(onTap: index==3 ? null : (){},child: Container(child: index == 3 ? Center(child: Text("Lecture", style: TextStyle(fontSize: 20),)) : null,))),Container(height: 5, child: Divider(),),Expanded(child: InkWell(onTap: index==3 ? null : (){},child: Container(child: index == 3 ? Center(child: Text("Tutorial", style: TextStyle(fontSize: 20),)) : null,)))],)),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(3),),
                             ),
