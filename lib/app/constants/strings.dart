@@ -9,5 +9,7 @@ class Strings {
   static const String signOut = 'Sign out';
   static const String welcomeToTasky = 'Welcome to Tasky! :)';
 
+  //New Course Table
+  static const String newCourseTableTitle = "New Course Table";
   // General
 }

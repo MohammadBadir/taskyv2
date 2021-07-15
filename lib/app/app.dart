@@ -7,6 +7,7 @@ import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
+import 'package:tasky/ui/widgets/new_course_table/new_course_table.dart';
 
 import 'models/user_data.dart';
 
@@ -42,7 +43,7 @@ class _MyAppState extends State<MyApp> {
                           return Center(child: Text(snapshot.error.toString()));
                         } else if(snapshot.connectionState == ConnectionState.done){
                           Provider.of<FirebaseAuthService>(context).markInitialized();
-                          return HomeWidget();
+                          return NewCourseTableWidget();
                         }
                         return Center(child: CircularProgressIndicator());
                       });
