@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +66,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
             31,
             (index) => index % 2 == 0
                 ? Container(
-                    width: 5,
+                    width: index==2 ? 0 : 5,
                     color: Colors.blueAccent,
                   )
                 : Expanded(
@@ -84,7 +86,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                           borderRadius: BorderRadius.circular(3),
                           color: Colors.white),
                     ),
-                    flex: index == 1 ? 6 : (index == 3 ? 3 : 2),
+                    flex: index == 1 ? 9 : (index == 3 ? 0 : 2),
                   )),
       ),
     );
@@ -104,7 +106,6 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     //     ),
     //   ),
     // );
-
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text(Strings.newCourseTableTitle)),
@@ -200,7 +201,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
               31,
               (index) => index.isEven
                   ? Container(
-                      width: 5,
+                      width: index==2 ? 0 : 5,
                       color: Colors.white,
                       child: indexNeedsDivider(index))
                   : Expanded(
