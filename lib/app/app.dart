@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
                           return Center(child: Text(snapshot.error.toString()));
                         } else if(snapshot.connectionState == ConnectionState.done){
                           Provider.of<FirebaseAuthService>(context).markInitialized();
-                          return NewCourseTableWidget();
+                          return HomeWidget();
                         }
                         return Center(child: CircularProgressIndicator());
                       });
