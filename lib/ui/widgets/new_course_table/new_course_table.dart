@@ -90,32 +90,11 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                   )),
       ),
     );
-    // Widget listThing = Container(
-    //   color: Colors.blueAccent,
-    //   child: ListView(
-    //     scrollDirection: Axis.horizontal,
-    //     children: List.generate(16, (index) => Container(
-    //       margin: EdgeInsets.fromLTRB(2.5, 5, 2.5, 5),
-    //       child: Center(child: Text((index+1).toString(),style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold),)),
-    //       width: (MediaQuery.of(context).size.width-10)/16-5,
-    //       decoration: BoxDecoration(
-    //         borderRadius: BorderRadius.circular(3),
-    //         color: Colors.white
-    //       ),
-    //     )
-    //     ),
-    //   ),
-    // );
+
     List<Widget> listContent = MediaQuery.of(context).size.width>=950 ? [
       cardMaker(weekRow, 50, includeBorders: true),
-      // cardMaker(Row(
-      //   mainAxisAlignment: MainAxisAlignment.start,
-      //   children: [
-      //     Text("  Jimmy", style: TextStyle(fontSize: 25,),)
-      //   ],
-      // ), 100),
       courseCard("Introduction to Computer Science", moddedProgressMap["Apple"]),
-      courseCard("Something", moddedProgressMap["Apple"]),
+      courseCard("Ninja", moddedProgressMap["Ninja"]),
       courseCard("Apple", moddedProgressMap["Apple"]),
       courseCard("Coconut", moddedProgressMap["Apple"]),
       cardMaker(
