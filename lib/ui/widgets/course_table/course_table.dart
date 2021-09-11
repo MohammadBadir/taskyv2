@@ -284,7 +284,14 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                               if(courseName==null||_selected==null){
                                 return;
                               }
-                              var courseOptions = CourseOptions(_selected==2, _selected==0||_selected==1,_selected==0);
+                              CourseOptions courseOptions;
+                              if(_selected==2){
+                                courseOptions = CourseOptions.singleton();
+                              } else {
+                                courseOptions = CourseOptions.general();
+                                courseOptions.lectureCount = _selected==0||_selected==1 ? 1 : 0;
+                                courseOptions.tutorialCount = _selected==0 ? 1 : 0;
+                              }
                               Provider.of<UserDB>(context,listen: false).addCourse(courseName, courseOptions);
                               Navigator.of(context).pop();
                             },

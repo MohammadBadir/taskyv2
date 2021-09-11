@@ -12,10 +12,10 @@ class Strings {
   //New Course Table
   static const String newCourseTableTitle = "New Course Table";
   static const String firstLecture = "Lecture";
-  static const String secondLecture = "Lecture #2";
+  static const String secondLecture = "SecondLecture";
   static const String tutorial = "Tutorial";
   static const String workshop = "Workshop";
-  static const String noLabel = "Singleton";
+  static const String singleton = "Singleton";
 
   // General
 }

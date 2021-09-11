@@ -1,11 +1,12 @@
-import 'dart:collection';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
+import 'package:tasky/app/models/course_options.dart';
 import 'package:tasky/app/services/user_db.dart';
+import 'package:tasky/ui/widgets/new_course_table/screen_too_small.dart';
+
+import 'no_courses.dart';
 
 class NewCourseTableWidget extends StatefulWidget {
   @override
@@ -44,20 +45,8 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
   Widget build(BuildContext context) {
     List courseOrder = Provider.of<UserDB>(context).courseOrder;
     Map courseProgressMap = Provider.of<UserDB>(context).courseProgressMap;
-    
-    Map moddedProgressMap = courseProgressMap.map((key, value){
-      Map moddedSubMap = value.map((subKey,subVal){
-        List moddedList = subVal.map((val) {
-          int num = cast<int>(val);
-          return num<=14 ? num-1 : num-3;
-        }).toList();
-        return MapEntry(subKey, moddedList);
-      });
 
-      return MapEntry(key, moddedSubMap);
-    });
-
-    moddedProgressMap.forEach((key, value) {print(MapEntry(key, value));});
+    courseProgressMap.forEach((key, value) {print(MapEntry(key, value));});
 
     Widget weekRow = Container(
       color: Colors.green,
@@ -91,99 +80,123 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       ),
     );
 
-    List<Widget> listContent = MediaQuery.of(context).size.width>=950 ? [
-      cardMaker(weekRow, 50, includeBorders: true),
-      courseCard("Introduction to Computer Science", moddedProgressMap["Apple"]),
-      courseCard("Ninja", moddedProgressMap["Ninja"]),
-      courseCard("Apple", moddedProgressMap["Apple"]),
-      courseCard("Coconut", moddedProgressMap["Apple"]),
-      cardMaker(
-          Row(
-            children: List.generate(
-                29,
-                    (index) => index % 2 == 0
-                    ? Container(
-                  width: 5,
-                  color: index == 0 || index == 28
-                      ? Colors.blueAccent
-                      : Colors.white,
-                  child: index == 0 || index == 28
-                      ? null
-                      : VerticalDivider(),
-                )
-                    : Expanded(
-                  child: Container(
-                    child: Center(
-                        child: index <= 2
-                            ? Text(
-                          index == 1
-                              ? "Introduction to Biomechanical Engineering"
-                              : (index ~/ 2).toString(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold),
-                        )
-                            : Column(
-                          children: [
-                            Expanded(
-                                child: InkWell(
-                                    onTap: () {},
-                                    child: Container())),
-                            Container(
-                              height: 5,
-                              child: Divider(),
-                            ),
-                            Expanded(
-                                child: InkWell(
-                                    onTap: () {},
-                                    child: Container())),
-                            Container(
-                              height: 5,
-                              child: Divider(),
-                            ),
-                            Expanded(
-                                child: InkWell(
-                                    onTap: () {},
-                                    child: Container()))
-                          ],
-                        )),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                  flex: index == 1 ? 3 : 1,
-                )),
-          ),
-          150,
-          includeBorders: true),
-      Text(MediaQuery.of(context).size.width.toString())
-    ] : [Center(
-      child: Text("Expand Window Plz",
-        textAlign: TextAlign.center,
-        style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold),
-      ),
-    )
+    List<Widget> listContent = [];
+    courseOrder.forEach((courseName) {
+      listContent.add(courseCard(courseName, courseProgressMap[courseName]));
+    });
+    listContent.add(Text(MediaQuery.of(context).size.width.toString()));
+
+    List<String> dialogOptions = [
+      //"2 Lectures + 1 Tutorial",
+      "Lecture + Tutorial",
+      "Lecture only",
+      "No Label"
     ];
+
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text(Strings.newCourseTableTitle)),
       ),
       drawer: NavigationDrawer(),
-      body: ListView(
-        children: listContent,
+      body: MediaQuery.of(context).size.width>=950 ? (courseOrder.isEmpty ? NoCoursesWidget() : Column(
+        children: [
+          cardMaker(weekRow, 50, includeBorders: true),
+          Expanded(
+            child: ListView(
+              children: listContent,
+            ),
+          ),
+        ],
+      )) : ScreenTooSmallWidget(),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.edit),
+        onPressed: (){
+          showDialog(
+              context: context,
+              builder: (BuildContext context){
+                String courseName;
+                int _selected;
+                return StatefulBuilder(
+                  builder: (context, setState){
+                    return AlertDialog(
+                      title: Text(" Enter Course Details"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("    Course Format:",style: TextStyle(color: Colors.grey),),
+                          SizedBox(height: 10,),
+                          Container(
+                            height: 150,
+                            width: MediaQuery.of(context).size.width/3,
+                            child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: 3,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return RadioListTile(
+                                      title: Text(dialogOptions[index]),
+                                      value: index,
+                                      groupValue: _selected,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selected = index;
+                                        });
+                                      });
+                                }),
+                          ),
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Course Name",
+                            ),
+                            onChanged: (String str){
+                              courseName = str;
+                            },
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: (){
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("Cancel"),
+                        ),
+                        TextButton(
+                            onPressed: (){
+                              if(courseName==null||_selected==null){
+                                return;
+                              }
+                              CourseOptions courseOptions;
+                              if(_selected==2){
+                                courseOptions = CourseOptions.singleton();
+                              } else {
+                                courseOptions = CourseOptions.general();
+                                courseOptions.lectureCount = _selected==0||_selected==1 ? 1 : 0;
+                                courseOptions.tutorialCount = _selected==0 ? 1 : 0;
+                              }
+                              Provider.of<UserDB>(context,listen: false).addCourse(courseName, courseOptions);
+                              Navigator.of(context).pop();
+                            },
+                            child: Text("Confirm")
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+          );
+        },
       ),
     );
   }
 
-  Widget courseCard(String courseName, Map courseData) {
-    int numRows = courseData.length;
-    List<String> names = ["Lecture #1"];
+  Widget courseCard(String courseName, Map courseMap) {
+    int numRows = courseMap['data'].length;
+    //List<String> names = ["Lecture #1"];
     VerticalDivider indexNeedsDivider(int index) =>
         index == 0 || index == 2 || index == 30 ? null : VerticalDivider(color: Colors.black38,);
     int flexByIndex(int index) => index == 1 ? 6 : (index == 3 ? 3 : 2);
+
     return cardMaker(
         Row(
           children: List.generate(
@@ -204,7 +217,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold),
                                   )
-                                : clickThing(index, courseData)),
+                                : clickThing(index, courseMap)),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(3),
                         ),
@@ -216,8 +229,22 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
         includeBorders: true);
   }
 
-  Column clickThing(int indexx, Map courseData) {
-    Widget press = Expanded(
+  CourseOptions courseOptionsFromData(Map courseInfo){
+    CourseOptions options = CourseOptions.general();
+    options.lectureCount = courseInfo['lectureCount'];
+    options.tutorialCount = courseInfo['tutorialCount'];
+    options.workShopCount = courseInfo['workshopCount'];
+    if(options.lectureCount + options.tutorialCount + options.workShopCount == 0) {
+      options.isSingleton = true;
+    }
+    return options;
+  }
+
+  Column clickThing(int indexx, Map courseMap) {
+    CourseOptions courseOptions = courseOptionsFromData(courseMap['info']);
+    Map courseData = courseMap['data'];
+    int numRows = courseData.length;
+    Widget press({String label, String fieldName, int count = 1}) => Expanded(
         child: InkWell(
             onTap: indexx == 3 ? null : () {},
             child: Container(
@@ -225,64 +252,45 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
               child: indexx == 3
                   ? Center(
                   child: Text(
-                    Strings.firstLecture,
+                    label,
                     style: TextStyle(fontSize: 20),
                   ))
                   :
-              courseData[Strings.firstLecture].contains((indexx-3)~/2) ?
+              courseData[fieldName].contains((indexx-3)~/2) ?
               FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded)) :
-              (courseData[Strings.firstLecture].contains((indexx-3)~/2 + 13) ?
+              (courseData[fieldName].contains((indexx-3)~/2 + 13) ?
               FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,)) :
               null),
             )),
       );
+
     Widget divv = Container(
         height: 5,
         child: Divider(color: Colors.black38,),
       );
-    List<Widget> widgetList = List.generate(3, (index) => index%2==0 ? press : divv);
+
+    //List<Widget> widgetList = List.generate(numRows*2-1, (index) => index%2==0 ? press : divv);
+    List<Widget> widgetList = [];
+    if(courseOptions.isSingleton){
+      widgetList.add(press(label: "Class", fieldName: Strings.singleton));
+    } else {
+      if(courseOptions.lectureCount>0){
+        widgetList.add(press(label: Strings.firstLecture, fieldName: Strings.firstLecture, count: courseOptions.lectureCount));
+        widgetList.add(divv);
+      }
+      if(courseOptions.tutorialCount>0){
+        widgetList.add(press(label: Strings.tutorial, fieldName: Strings.tutorial, count: courseOptions.tutorialCount));
+        widgetList.add(divv);
+      }
+      if(courseOptions.workShopCount>0){
+        widgetList.add(press(label: Strings.workshop, fieldName: Strings.workshop, count: courseOptions.workShopCount));
+        widgetList.add(divv);
+      }
+      widgetList.removeLast();
+    }
+
     return Column(
-        children: true ? widgetList : [
-          Expanded(
-              child: InkWell(
-                  onTap: indexx == 3 ? null : () {},
-                  child: Container(
-                    constraints: BoxConstraints.expand(),
-                    child: indexx == 3
-                        ? Center(
-                        child: Text(
-                          Strings.firstLecture,
-                          style: TextStyle(fontSize: 20),
-                        ))
-                        :
-                    courseData[Strings.firstLecture].contains((indexx-3)~/2) ?
-                    FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded)) :
-                    (courseData[Strings.firstLecture].contains((indexx-3)~/2 + 13) ?
-                    FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,)) :
-                    null),
-                  ))),
-          Container(
-            height: 5,
-            child: Divider(color: Colors.black38,),
-          ),
-          Expanded(
-              child: InkWell(
-                  onTap: indexx == 3 ? null : () {},
-                  child: Container(
-                    constraints: BoxConstraints.expand(),
-                    child: indexx == 3
-                        ? Center(
-                        child: Text(
-                          Strings.tutorial,
-                          style: TextStyle(fontSize: 20),
-                        ))
-                        :
-                    courseData[Strings.tutorial].contains((indexx-3)~/2) ?
-                    FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded)) :
-                    (courseData[Strings.tutorial].contains((indexx-3)~/2 + 13) ?
-                    FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,)) :
-                    null),
-                  )))        ],
-      );
+        children: widgetList
+    );
   }
 }

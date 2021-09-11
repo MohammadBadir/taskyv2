@@ -69,18 +69,26 @@ class UserDB extends ChangeNotifier {
     assert(FirebaseAuth.instance.currentUser != null);
     assert(courseOrder != null);
     assert(userDocument != null);
-    Map tempMap = {};
-    if(courseOptions.isSinglton){
-      tempMap['Singleton']=[];
+    Map dataMap = {};
+    if(courseOptions.isSingleton){
+      dataMap['Singleton']=[];
     } else {
-      if(courseOptions.hasLecture){
-        tempMap['Lecture']=[];
+      if(courseOptions.lectureCount>0){
+        dataMap['Lecture']=[];
       }
-      if(courseOptions.hasTutorial){
-        tempMap['Tutorial']=[];
+      if(courseOptions.tutorialCount>0){
+        dataMap['Tutorial']=[];
+      }
+      if(courseOptions.workShopCount>0){
+        dataMap['Workshop']=[];
       }
     }
-    courseProgressMap[courseName]=tempMap;
+    Map infoMap = {
+      'lectureCount': courseOptions.lectureCount,
+      'tutorialCount': courseOptions.tutorialCount,
+      'workshopCount': courseOptions.workShopCount
+    };
+    courseProgressMap[courseName]= {'info': infoMap, 'data': dataMap};
     courseOrder.add(courseName);
     await userDocument.update({'courseProgressMap' : courseProgressMap});
     await userDocument.update({'courseOrder' : courseOrder});
