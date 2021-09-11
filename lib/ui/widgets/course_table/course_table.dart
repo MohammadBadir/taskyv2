@@ -288,7 +288,7 @@ class _CourseTableWidgetState extends State<CourseTableWidget> {
                               if(_selected==2){
                                 courseOptions = CourseOptions.singleton();
                               } else {
-                                courseOptions = CourseOptions.general();
+                                courseOptions = CourseOptions();
                                 courseOptions.lectureCount = _selected==0||_selected==1 ? 1 : 0;
                                 courseOptions.tutorialCount = _selected==0 ? 1 : 0;
                               }
