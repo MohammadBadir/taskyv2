@@ -92,7 +92,6 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       "Lecture only",
       "No Label"
     ];
-
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text(Strings.newCourseTableTitle)),
@@ -217,7 +216,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold),
                                   )
-                                : clickThing(index, courseMap)),
+                                : clickThing(index, courseMap, courseName)),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(3),
                         ),
@@ -240,13 +239,48 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     return options;
   }
 
-  Column clickThing(int indexx, Map courseMap) {
+  Column clickThing(int indexx, Map courseMap, String courseName) {
+    int numWeeks = 13;
     CourseOptions courseOptions = courseOptionsFromData(courseMap['info']);
     Map courseData = courseMap['data'];
     int numRows = courseData.length;
-    Widget press({String label, String fieldName, int count = 1}) => Expanded(
+
+    Widget press({String label, String fieldName, int count = 1}) {
+      Widget iconToPut;
+      if(courseData[fieldName].contains((indexx-3)~/2)){
+        iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded));
+      } else if(count==2 && courseData[fieldName].contains((indexx-3)~/2 + numWeeks)){
+        iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.done_all_rounded));
+      } else if(courseData[fieldName].contains(-(indexx-3)~/2)){
+        iconToPut = FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,));
+      }
+
+      return Expanded(
         child: InkWell(
-            onTap: indexx == 3 ? null : () {},
+            onTap: indexx == 3 ? null : () {
+              if(courseData[fieldName].contains((indexx-3)~/2)){
+                courseData[fieldName].remove((indexx-3)~/2);
+                if(count==2) courseData[fieldName].add((indexx-3)~/2 + numWeeks);
+              } else if(courseData[fieldName].contains((indexx-3)~/2 + numWeeks)){
+                courseData[fieldName].remove((indexx-3)~/2 + numWeeks);
+              } else if(courseData[fieldName].contains(-(indexx-3)~/2)){
+                courseData[fieldName].remove(-(indexx-3)~/2);
+                courseData[fieldName].add((indexx-3)~/2);
+              } else {
+                courseData[fieldName].add((indexx-3)~/2);
+              }
+              Provider.of<UserDB>(context, listen: false).uploadProgressMap();
+            },
+            onLongPress: indexx == 3 ? null : (){
+              if(!courseData[fieldName].contains(-(indexx-3)~/2)){
+                courseData[fieldName].remove((indexx-3)~/2);
+                courseData[fieldName].remove((indexx-3)~/2 + numWeeks);
+                courseData[fieldName].add(-(indexx-3)~/2);
+              } else {
+                courseData[fieldName].remove(-(indexx-3)~/2);
+              }
+              Provider.of<UserDB>(context, listen: false).uploadProgressMap();
+            },
             child: Container(
               constraints: BoxConstraints.expand(),
               child: indexx == 3
@@ -256,13 +290,10 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                     style: TextStyle(fontSize: 20),
                   ))
                   :
-              courseData[fieldName].contains((indexx-3)~/2) ?
-              FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded)) :
-              (courseData[fieldName].contains((indexx-3)~/2 + 13) ?
-              FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,)) :
-              null),
+              iconToPut,
             )),
       );
+    }
 
     Widget divv = Container(
         height: 5,
@@ -275,15 +306,18 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       widgetList.add(press(label: "Class", fieldName: Strings.singleton));
     } else {
       if(courseOptions.lectureCount>0){
-        widgetList.add(press(label: Strings.firstLecture, fieldName: Strings.firstLecture, count: courseOptions.lectureCount));
+        String plural = courseOptions.lectureCount>1 ? "s" : "";
+        widgetList.add(press(label: Strings.firstLecture + plural, fieldName: Strings.firstLecture, count: courseOptions.lectureCount));
         widgetList.add(divv);
       }
       if(courseOptions.tutorialCount>0){
-        widgetList.add(press(label: Strings.tutorial, fieldName: Strings.tutorial, count: courseOptions.tutorialCount));
+        String plural = courseOptions.tutorialCount>1 ? "s" : "";
+        widgetList.add(press(label: Strings.tutorial + plural, fieldName: Strings.tutorial, count: courseOptions.tutorialCount));
         widgetList.add(divv);
       }
       if(courseOptions.workShopCount>0){
-        widgetList.add(press(label: Strings.workshop, fieldName: Strings.workshop, count: courseOptions.workShopCount));
+        String plural = courseOptions.workShopCount>1 ? "s" : "";
+        widgetList.add(press(label: Strings.workshop + plural, fieldName: Strings.workshop, count: courseOptions.workShopCount));
         widgetList.add(divv);
       }
       widgetList.removeLast();

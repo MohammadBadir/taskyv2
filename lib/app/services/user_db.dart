@@ -54,6 +54,11 @@ class UserDB extends ChangeNotifier {
     //print("inFunct "+courseProgressMap.toString());
   }
 
+  uploadProgressMap(){
+    userDocument.update({'courseProgressMap' : courseProgressMap});
+    notifyListeners();
+  }
+
   addWord(String word) async{
     assert(FirebaseAuth.instance.currentUser != null);
     assert(courseOrder != null);
