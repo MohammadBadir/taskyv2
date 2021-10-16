@@ -54,7 +54,8 @@ class UserDB extends ChangeNotifier {
     //print("inFunct "+courseProgressMap.toString());
   }
 
-  uploadProgressMap(){
+  updateCourses(){
+    userDocument.update({'courseOrder' : courseOrder});
     userDocument.update({'courseProgressMap' : courseProgressMap});
     notifyListeners();
   }
@@ -98,6 +99,15 @@ class UserDB extends ChangeNotifier {
     await userDocument.update({'courseProgressMap' : courseProgressMap});
     await userDocument.update({'courseOrder' : courseOrder});
     notifyListeners();
+  }
+
+  swapCourseOrder(int newIndex, int oldIndex){
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    var pair = courseOrder.removeAt(oldIndex);
+    courseOrder.insert(newIndex, pair);
+    updateCourses();
   }
 
   addCourseGrade(String courseName, double points, double grade) async{

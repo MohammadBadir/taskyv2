@@ -5,6 +5,7 @@ import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/models/course_options.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/new_course_table/screen_too_small.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 import 'no_courses.dart';
 
@@ -46,7 +47,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     List courseOrder = Provider.of<UserDB>(context).courseOrder;
     Map courseProgressMap = Provider.of<UserDB>(context).courseProgressMap;
 
-    courseProgressMap.forEach((key, value) {print(MapEntry(key, value));});
+    //courseProgressMap.forEach((key, value) { print(MapEntry(key, value)); });
 
     Widget weekRow = Container(
       color: Colors.green,
@@ -87,11 +88,11 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     listContent.add(Text(MediaQuery.of(context).size.width.toString()));
 
     List<String> dialogOptions = [
-      //"2 Lectures + 1 Tutorial",
       "Lecture + Tutorial",
       "Lecture only",
       "No Label"
     ];
+
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text(Strings.newCourseTableTitle)),
@@ -108,75 +109,282 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
         ],
       )) : ScreenTooSmallWidget(),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.edit),
+        child: /*Provider.of<UserDB>(context).editMode ? Icon(Icons.check_rounded, size: 35.0,) :*/ Icon(Icons.edit),
+        backgroundColor: Colors.blueAccent,
         onPressed: (){
           showDialog(
               context: context,
               builder: (BuildContext context){
-                String courseName;
-                int _selected;
                 return StatefulBuilder(
                   builder: (context, setState){
                     return AlertDialog(
-                      title: Text(" Enter Course Details"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("    Course Format:",style: TextStyle(color: Colors.grey),),
-                          SizedBox(height: 10,),
-                          Container(
-                            height: 150,
-                            width: MediaQuery.of(context).size.width/3,
-                            child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: 3,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return RadioListTile(
-                                      title: Text(dialogOptions[index]),
-                                      value: index,
-                                      groupValue: _selected,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _selected = index;
-                                        });
-                                      });
-                                }),
+                      title: Center(child: Text(courseOrder.length.toString() + " Courses")),
+                      content: Container(
+                        width: MediaQuery.of(context).size.width/3,
+                        child: ReorderableListView(
+                          buildDefaultDragHandles: false,
+                          shrinkWrap: true,
+                          children: List.generate(
+                              courseOrder.length,
+                                  (index) => Container(
+                                  key: UniqueKey(),
+                                  height: 50,
+                                  child: Card(
+                                    color: Colors.white,
+                                    child: ClipPath(
+                                      child: Container(
+                                          child: Center(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment
+                                                  .spaceBetween,
+                                              children: [
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 8.0),
+                                                  child: Text(courseOrder[index],
+                                                    textAlign: TextAlign.start,
+                                                    style: TextStyle(
+                                                        fontSize: 24,
+                                                        fontWeight: FontWeight
+                                                            .bold),),
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    TextButton(
+                                                      onPressed: () {
+
+                                                      },
+                                                      child: Text("EDIT"),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        showDialog(
+                                                            context: context,
+                                                            builder: (
+                                                                BuildContext context) {
+                                                              return StatefulBuilder(
+                                                                builder: (context,
+                                                                    setState) {
+                                                                  return AlertDialog(
+                                                                    title: Text(
+                                                                        "Are you sure you want to delete this course?"),
+                                                                    content: Text(
+                                                                        "This action cannot be undone"),
+                                                                    actions: [
+                                                                      TextButton(
+                                                                        onPressed: () {
+                                                                          String courseName = courseOrder[index];
+                                                                          courseOrder
+                                                                              .removeAt(
+                                                                              index);
+                                                                          courseProgressMap
+                                                                              .remove(
+                                                                              courseName);
+                                                                          Provider
+                                                                              .of<
+                                                                              UserDB>(
+                                                                              context,
+                                                                              listen: false)
+                                                                              .updateCourses();
+                                                                          Navigator
+                                                                              .of(
+                                                                              context)
+                                                                              .pop();
+                                                                        },
+                                                                        child: Text(
+                                                                            "Yes"),
+                                                                      ),
+                                                                      TextButton(
+                                                                          onPressed: () {
+                                                                            Navigator
+                                                                                .of(
+                                                                                context)
+                                                                                .pop();
+                                                                          },
+                                                                          child: Text(
+                                                                              "No")
+                                                                      ),
+                                                                    ],
+                                                                  );
+                                                                },
+                                                              );
+                                                            }
+                                                        );
+                                                      },
+                                                      child: Text("DELETE",
+                                                        style: TextStyle(
+                                                            color: Colors.red),),
+                                                    ),
+                                                    ReorderableDragStartListener(
+                                                      index: index,
+                                                      child: Padding(
+                                                        padding: const EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
+                                                        child: Icon(Icons.drag_handle),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          decoration: BoxDecoration(
+                                              border: Border(
+                                                  left: BorderSide(
+                                                      color: Colors.blueAccent,
+                                                      width: 5),
+                                                  right: BorderSide(
+                                                      color: Colors.blueAccent,
+                                                      width: 5)))
+                                      ),
+                                      clipper: ShapeBorderClipper(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(
+                                                  3))),
+                                    ),
+                                  ),
+                                )
                           ),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              labelText: "Course Name",
-                            ),
-                            onChanged: (String str){
-                              courseName = str;
-                            },
-                          ),
-                        ],
+                          onReorder: (int oldIndex, int newIndex) {
+                            Provider.of<UserDB>(context, listen: false).swapCourseOrder(newIndex, oldIndex);
+                          },
+                        ),
                       ),
                       actions: [
                         TextButton(
-                          onPressed: (){
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("Cancel"),
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    String courseName;
+                                    int _selected;
+                                    return StatefulBuilder(
+                                      builder: (context, setState) {
+                                        return AlertDialog(
+                                          title: Text(
+                                              " Enter Course Details"),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize
+                                                .min,
+                                            crossAxisAlignment: CrossAxisAlignment
+                                                .start,
+                                            children: [
+                                              Text(
+                                                "    Course Format:",
+                                                style: TextStyle(
+                                                    color: Colors
+                                                        .grey),),
+                                              SizedBox(height: 10,),
+                                              Container(
+                                                height: 150,
+                                                width: MediaQuery
+                                                    .of(context)
+                                                    .size
+                                                    .width / 3,
+                                                child: ListView
+                                                    .builder(
+                                                    shrinkWrap: true,
+                                                    itemCount: 3,
+                                                    itemBuilder: (
+                                                        BuildContext context,
+                                                        int index) {
+                                                      return RadioListTile(
+                                                          title: Text(
+                                                              dialogOptions[index]),
+                                                          value: index,
+                                                          groupValue: _selected,
+                                                          onChanged: (
+                                                              value) {
+                                                            setState(() {
+                                                              _selected =
+                                                                  index;
+                                                            });
+                                                          });
+                                                    }),
+                                              ),
+                                              TextFormField(
+                                                decoration: InputDecoration(
+                                                  labelText: "Course Name",
+                                                ),
+                                                onChanged: (
+                                                    String str) {
+                                                  courseName = str;
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(
+                                                    context).pop();
+                                              },
+                                              child: Text("Cancel"),
+                                            ),
+                                            TextButton(
+                                                onPressed: () {
+                                                  if (courseName ==
+                                                      null ||
+                                                      _selected ==
+                                                          null) {
+                                                    return;
+                                                  }
+                                                  CourseOptions courseOptions;
+                                                  if (_selected ==
+                                                      2) {
+                                                    courseOptions =
+                                                        CourseOptions
+                                                            .singleton();
+                                                  } else {
+                                                    courseOptions =
+                                                        CourseOptions();
+                                                    courseOptions
+                                                        .lectureCount =
+                                                    _selected ==
+                                                        0 ||
+                                                        _selected ==
+                                                            1
+                                                        ? 1
+                                                        : 0;
+                                                    courseOptions
+                                                        .tutorialCount =
+                                                    _selected == 0
+                                                        ? 1
+                                                        : 0;
+                                                  }
+                                                  Provider.of<
+                                                      UserDB>(
+                                                      context,
+                                                      listen: false)
+                                                      .addCourse(
+                                                      courseName,
+                                                      courseOptions);
+                                                  Navigator.of(
+                                                      context)
+                                                      .pop();
+                                                },
+                                                child: Text(
+                                                    "Confirm")
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text("Add Course"),
+                            )
                         ),
                         TextButton(
                             onPressed: (){
-                              if(courseName==null||_selected==null){
-                                return;
-                              }
-                              CourseOptions courseOptions;
-                              if(_selected==2){
-                                courseOptions = CourseOptions.singleton();
-                              } else {
-                                courseOptions = CourseOptions();
-                                courseOptions.lectureCount = _selected==0||_selected==1 ? 1 : 0;
-                                courseOptions.tutorialCount = _selected==0 ? 1 : 0;
-                              }
-                              Provider.of<UserDB>(context,listen: false).addCourse(courseName, courseOptions);
                               Navigator.of(context).pop();
                             },
-                            child: Text("Confirm")
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text("Done"),
+                            )
                         ),
                       ],
                     );
@@ -184,7 +392,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                 );
               }
           );
-        },
+          },
       ),
     );
   }
@@ -216,7 +424,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold),
                                   )
-                                : clickThing(index, courseMap, courseName)),
+                                : courseColumn(index, courseMap, courseName)),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(3),
                         ),
@@ -239,7 +447,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     return options;
   }
 
-  Column clickThing(int indexx, Map courseMap, String courseName) {
+  Column courseColumn(int index, Map courseMap, String courseName) {
     int numWeeks = 13;
     CourseOptions courseOptions = courseOptionsFromData(courseMap['info']);
     Map courseData = courseMap['data'];
@@ -247,43 +455,43 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
     Widget press({String label, String fieldName, int count = 1}) {
       Widget iconToPut;
-      if(courseData[fieldName].contains((indexx-3)~/2)){
+      if(courseData[fieldName].contains((index-3)~/2)){
         iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded));
-      } else if(count==2 && courseData[fieldName].contains((indexx-3)~/2 + numWeeks)){
+      } else if(count==2 && courseData[fieldName].contains((index-3)~/2 + numWeeks)){
         iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.done_all_rounded));
-      } else if(courseData[fieldName].contains(-(indexx-3)~/2)){
+      } else if(courseData[fieldName].contains(-(index-3)~/2)){
         iconToPut = FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,));
       }
 
       return Expanded(
         child: InkWell(
-            onTap: indexx == 3 ? null : () {
-              if(courseData[fieldName].contains((indexx-3)~/2)){
-                courseData[fieldName].remove((indexx-3)~/2);
-                if(count==2) courseData[fieldName].add((indexx-3)~/2 + numWeeks);
-              } else if(courseData[fieldName].contains((indexx-3)~/2 + numWeeks)){
-                courseData[fieldName].remove((indexx-3)~/2 + numWeeks);
-              } else if(courseData[fieldName].contains(-(indexx-3)~/2)){
-                courseData[fieldName].remove(-(indexx-3)~/2);
-                courseData[fieldName].add((indexx-3)~/2);
+            onTap: index == 3 ? null : () {
+              if(courseData[fieldName].contains((index-3)~/2)){
+                courseData[fieldName].remove((index-3)~/2);
+                if(count==2) courseData[fieldName].add((index-3)~/2 + numWeeks);
+              } else if(courseData[fieldName].contains((index-3)~/2 + numWeeks)){
+                courseData[fieldName].remove((index-3)~/2 + numWeeks);
+              } else if(courseData[fieldName].contains(-(index-3)~/2)){
+                courseData[fieldName].remove(-(index-3)~/2);
+                courseData[fieldName].add((index-3)~/2);
               } else {
-                courseData[fieldName].add((indexx-3)~/2);
+                courseData[fieldName].add((index-3)~/2);
               }
-              Provider.of<UserDB>(context, listen: false).uploadProgressMap();
+              Provider.of<UserDB>(context, listen: false).updateCourses();
             },
-            onLongPress: indexx == 3 ? null : (){
-              if(!courseData[fieldName].contains(-(indexx-3)~/2)){
-                courseData[fieldName].remove((indexx-3)~/2);
-                courseData[fieldName].remove((indexx-3)~/2 + numWeeks);
-                courseData[fieldName].add(-(indexx-3)~/2);
+            onLongPress: index == 3 ? null : (){
+              if(!courseData[fieldName].contains(-(index-3)~/2)){
+                courseData[fieldName].remove((index-3)~/2);
+                courseData[fieldName].remove((index-3)~/2 + numWeeks);
+                courseData[fieldName].add(-(index-3)~/2);
               } else {
-                courseData[fieldName].remove(-(indexx-3)~/2);
+                courseData[fieldName].remove(-(index-3)~/2);
               }
-              Provider.of<UserDB>(context, listen: false).uploadProgressMap();
+              Provider.of<UserDB>(context, listen: false).updateCourses();
             },
             child: Container(
               constraints: BoxConstraints.expand(),
-              child: indexx == 3
+              child: index == 3
                   ? Center(
                   child: Text(
                     label,
