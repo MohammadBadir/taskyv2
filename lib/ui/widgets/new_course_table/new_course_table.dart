@@ -169,7 +169,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                 child: Text(courseOrder[index],
                                                   textAlign: TextAlign.start,
                                                   style: TextStyle(
-                                                      fontSize: 16,
+                                                      fontSize: courseOrder[index].length < 20 ? 16 : 14,
                                                       fontWeight: FontWeight
                                                           .bold),),
                                               ),
@@ -203,7 +203,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                                         width: MediaQuery
                                                                             .of(context)
                                                                             .size
-                                                                            .width / 3,
+                                                                            .width / 2.7,
                                                                         child: ListView
                                                                             .builder(
                                                                             shrinkWrap: true,
@@ -681,9 +681,12 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
               constraints: BoxConstraints.expand(),
               child: index == 3
                   ? Center(
-                  child: Text(
-                    label,
-                    style: TextStyle(fontSize: 20),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      style: TextStyle(fontSize: 20),
+                    ),
                   ))
                   :
               iconToPut,
