@@ -56,6 +56,12 @@ class UserDB extends ChangeNotifier {
     //print("inFunct "+courseProgressMap.toString());
   }
 
+  updateCourses(){
+    userDocument.update({'courseOrder' : courseOrder});
+    userDocument.update({'courseProgressMap' : courseProgressMap});
+    notifyListeners();
+  }
+
   addWord(String word) async{
     assert(FirebaseAuth.instance.currentUser != null);
     assert(courseOrder != null);
@@ -71,22 +77,103 @@ class UserDB extends ChangeNotifier {
     assert(FirebaseAuth.instance.currentUser != null);
     assert(courseOrder != null);
     assert(userDocument != null);
-    Map tempMap = {};
-    if(courseOptions.isSinglton){
-      tempMap['Singleton']=[];
+    Map dataMap = {};
+    if(courseOptions.isSingleton){
+      dataMap['Singleton']=[];
     } else {
-      if(courseOptions.hasLecture){
-        tempMap['Lecture']=[];
+      if(courseOptions.lectureCount>0){
+        dataMap['Lecture']=[];
       }
-      if(courseOptions.hasTutorial){
-        tempMap['Tutorial']=[];
+      if(courseOptions.tutorialCount>0){
+        dataMap['Tutorial']=[];
+      }
+      if(courseOptions.workShopCount>0){
+        dataMap['Workshop']=[];
       }
     }
-    courseProgressMap[courseName]=tempMap;
+    Map infoMap = {
+      'lectureCount': courseOptions.lectureCount,
+      'tutorialCount': courseOptions.tutorialCount,
+      'workshopCount': courseOptions.workShopCount
+    };
+    courseProgressMap[courseName]= {'info': infoMap, 'data': dataMap};
     courseOrder.add(courseName);
     await userDocument.update({'courseProgressMap' : courseProgressMap});
     await userDocument.update({'courseOrder' : courseOrder});
     notifyListeners();
+  }
+
+  editCourse(String courseName, String newCourseName, CourseOptions newCourseOptions){
+    bool changesMade = false;
+    CourseOptions courseOptionsFromInfo(Map courseInfo){
+      CourseOptions options = CourseOptions();
+      options.lectureCount = courseInfo['lectureCount'];
+      options.tutorialCount = courseInfo['tutorialCount'];
+      options.workShopCount = courseInfo['workshopCount'];
+      if(options.lectureCount + options.tutorialCount + options.workShopCount == 0) {
+        options.isSingleton = true;
+      }
+      return options;
+    }
+    Map courseMap = courseProgressMap[courseName];
+    CourseOptions oldCourseOptions = courseOptionsFromInfo(courseMap["info"]);
+    Map courseData = courseMap['data'];
+    if(oldCourseOptions.lectureCount!=newCourseOptions.lectureCount){
+      changesMade = true;
+      if(newCourseOptions.lectureCount==0){
+        courseData.remove(Strings.lecture);
+      } else if(oldCourseOptions.lectureCount==0 && newCourseOptions.lectureCount>0){
+        courseData[Strings.lecture]=[];
+      } else if(oldCourseOptions.lectureCount>newCourseOptions.lectureCount){
+        courseData[Strings.lecture].clear();
+      }
+    }
+    if(oldCourseOptions.tutorialCount!=newCourseOptions.tutorialCount){
+      changesMade = true;
+      if(newCourseOptions.tutorialCount==0){
+        courseData.remove(Strings.tutorial);
+      } else if(oldCourseOptions.tutorialCount==0 && newCourseOptions.tutorialCount>0){
+        courseData[Strings.tutorial]=[];
+      } else if(oldCourseOptions.tutorialCount>newCourseOptions.tutorialCount){
+        courseData[Strings.tutorial].clear();
+      }
+    }
+    if(oldCourseOptions.workShopCount!=newCourseOptions.workShopCount){
+      changesMade = true;
+      if(newCourseOptions.workShopCount==0){
+        courseData.remove(Strings.workshop);
+      } else if(oldCourseOptions.workShopCount==0 && newCourseOptions.workShopCount>0){
+        courseData[Strings.workshop]=[];
+      } else if(oldCourseOptions.workShopCount>newCourseOptions.workShopCount){
+        courseData[Strings.workshop].clear();
+      }
+    }
+    Map newInfoMap = {
+      'lectureCount': newCourseOptions.lectureCount,
+      'tutorialCount': newCourseOptions.tutorialCount,
+      'workshopCount': newCourseOptions.workShopCount
+    };
+    courseMap["info"] = newInfoMap;
+    if(newCourseName!=courseName){
+      changesMade = true;
+      courseProgressMap[newCourseName] = courseMap;
+      courseProgressMap.remove(courseName);
+    }
+    int index = courseOrder.indexOf(courseName);
+    courseOrder.removeAt(index);
+    courseOrder.insert(index, newCourseName);
+    if(changesMade){
+      updateCourses();
+    }
+  }
+
+  swapCourseOrder(int newIndex, int oldIndex){
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    var pair = courseOrder.removeAt(oldIndex);
+    courseOrder.insert(newIndex, pair);
+    updateCourses();
   }
 
   // addCourseGrade(String courseName, double points, double grade) async{

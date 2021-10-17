@@ -9,5 +9,13 @@ class Strings {
   static const String signOut = 'Sign out';
   static const String welcomeToTasky = 'Welcome to Tasky! :)';
 
+  //New Course Table
+  static const String newCourseTableTitle = "New Course Table";
+  static const String lecture = "Lecture";
+  static const String secondLecture = "SecondLecture";
+  static const String tutorial = "Tutorial";
+  static const String workshop = "Workshop";
+  static const String singleton = "Singleton";
+
   // General
 }
