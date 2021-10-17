@@ -42,6 +42,20 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
   T cast<T>(x) => x is T ? x : null;
 
+  showMyDialog(BuildContext context, String message){
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text(message),
+            actions: [
+              TextButton(onPressed: ()=>Navigator.of(context).pop(), child: Text("OK"))
+            ],
+          );
+        }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     List courseOrder = Provider.of<UserDB>(context).courseOrder;
@@ -117,8 +131,19 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
               builder: (BuildContext context){
                 return StatefulBuilder(
                   builder: (context, setState){
+                    int totalLectures = 0;
+                    courseProgressMap.forEach((key, value) { totalLectures+= value["info"]["lectureCount"]; });
+                    int totalTutorials = 0;
+                    courseProgressMap.forEach((key, value) { totalTutorials+= value["info"]["tutorialCount"]; });
+                    int totalWorkshops = 0;
+                    courseProgressMap.forEach((key, value) { totalWorkshops+= value["info"]["workshopCount"]; });
                     return AlertDialog(
-                      title: Center(child: Text(courseOrder.length.toString() + " Courses")),
+                      title: Center(child: Text(
+                          courseOrder.length.toString() + " Courses - " +
+                              (totalLectures>0 ? totalLectures.toString() + " Lectures" : "") +
+                              (totalTutorials>0 ? (totalLectures>0 ? ", " : "") + totalTutorials.toString() + " Tutorials" : "") +
+                              (totalWorkshops>0 ? (totalLectures>0 || totalTutorials>0 ? ", " : "") + totalWorkshops.toString() + " Workshops" : "")
+                      )),
                       content: Container(
                         width: MediaQuery.of(context).size.width/3,
                         child: ReorderableListView(
@@ -152,7 +177,145 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                 children: [
                                                   TextButton(
                                                     onPressed: () {
-
+                                                      showDialog(
+                                                          context: context,
+                                                          builder: (BuildContext context) {
+                                                            String oldCourseName = courseOrder[index];
+                                                            String newCourseName = oldCourseName;
+                                                            CourseOptions courseOptions = courseOptionsFromInfo(courseProgressMap[oldCourseName]["info"]);
+                                                            int lecCount = courseOptions.lectureCount;
+                                                            int tutCount = courseOptions.tutorialCount;
+                                                            int wrkCount = courseOptions.workShopCount;
+                                                            return StatefulBuilder(
+                                                              builder: (context, setState) {
+                                                                return AlertDialog(
+                                                                  title: Text(
+                                                                      " Edit Course Details"
+                                                                  ),
+                                                                  content: Column(
+                                                                    mainAxisSize: MainAxisSize
+                                                                        .min,
+                                                                    crossAxisAlignment: CrossAxisAlignment
+                                                                        .start,
+                                                                    children: [
+                                                                      Container(
+                                                                        height: 180,
+                                                                        width: MediaQuery
+                                                                            .of(context)
+                                                                            .size
+                                                                            .width / 3,
+                                                                        child: ListView
+                                                                            .builder(
+                                                                            shrinkWrap: true,
+                                                                            itemCount: 3,
+                                                                            itemBuilder: (
+                                                                                BuildContext context,
+                                                                                int index) {
+                                                                              return Padding(
+                                                                                padding: const EdgeInsets.all(16.0),
+                                                                                child: Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                  children: [
+                                                                                    Text(" "+dialogOptions[index],
+                                                                                      style: TextStyle(color: Colors.grey),),
+                                                                                    Row(
+                                                                                      mainAxisAlignment: MainAxisAlignment.end,
+                                                                                      children: [
+                                                                                        TextButton(onPressed: () { setState((){
+                                                                                          switch(index){
+                                                                                            case 0:{
+                                                                                              if(lecCount>0) lecCount--;
+                                                                                            }
+                                                                                            break;
+                                                                                            case 1:{
+                                                                                              if(tutCount>0) tutCount--;
+                                                                                            }
+                                                                                            break;
+                                                                                            case 2:{
+                                                                                              if(wrkCount>0) wrkCount--;
+                                                                                            }
+                                                                                            break;
+                                                                                          }
+                                                                                        }); },
+                                                                                            child: Icon(Icons.arrow_back_ios_new)),
+                                                                                        Text(" "+(index==0 ? lecCount : index==1 ? tutCount : wrkCount).toString()+" "),
+                                                                                        TextButton(onPressed: () { setState((){
+                                                                                          switch(index){
+                                                                                            case 0:{
+                                                                                              if(lecCount<2) lecCount++;
+                                                                                            }
+                                                                                            break;
+                                                                                            case 1:{
+                                                                                              if(tutCount<2) tutCount++;
+                                                                                            }
+                                                                                            break;
+                                                                                            case 2:{
+                                                                                              if(wrkCount<2) wrkCount++;
+                                                                                            }
+                                                                                            break;
+                                                                                          }
+                                                                                        }); },
+                                                                                            child: Icon(Icons.arrow_forward_ios))                                                              ],
+                                                                                    )
+                                                                                  ],
+                                                                                ),
+                                                                              );
+                                                                            }),
+                                                                      ),
+                                                                      Padding(
+                                                                        padding: const EdgeInsets.fromLTRB(16.0, 0.0, 0.0, 0.0),
+                                                                        child: TextFormField(
+                                                                          decoration: InputDecoration(
+                                                                            labelText: " Course Name",
+                                                                          ),
+                                                                          initialValue: oldCourseName,
+                                                                          onChanged: (
+                                                                              String str) {
+                                                                            newCourseName = str;
+                                                                          },
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  actions: [
+                                                                    TextButton(
+                                                                      onPressed: () {
+                                                                        Navigator.of(
+                                                                            context).pop();
+                                                                      },
+                                                                      child: Text("Cancel"),
+                                                                    ),
+                                                                    TextButton(
+                                                                        onPressed: () {
+                                                                          if (newCourseName == null || newCourseName=="") {
+                                                                            showMyDialog(context, "Course must have a name");
+                                                                            return;
+                                                                          } else if(lecCount+tutCount+wrkCount==0){
+                                                                            showMyDialog(context, "Course cannot be empty");
+                                                                            return;
+                                                                          }
+                                                                          CourseOptions newCourseOptions = CourseOptions();
+                                                                          newCourseOptions.lectureCount = lecCount;
+                                                                          newCourseOptions.tutorialCount = tutCount;
+                                                                          newCourseOptions.workShopCount = wrkCount;
+                                                                          Provider.of<
+                                                                              UserDB>(
+                                                                              context,
+                                                                              listen: false)
+                                                                              .editCourse(oldCourseName, newCourseName, newCourseOptions);
+                                                                          Navigator.of(
+                                                                              context)
+                                                                              .pop();
+                                                                        },
+                                                                        child: Text(
+                                                                            "Confirm")
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              },
+                                                            );
+                                                          }
+                                                      );
                                                     },
                                                     child: Text("EDIT"),
                                                   ),
@@ -359,8 +522,11 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                             ),
                                             TextButton(
                                                 onPressed: () {
-                                                  if (courseName ==
-                                                      null) {
+                                                  if (courseName == null || courseName=="") {
+                                                    showMyDialog(context, "Course must have a name");
+                                                    return;
+                                                  } else if(lecCount+tutCount+wrkCount==0){
+                                                    showMyDialog(context, "Course cannot be empty");
                                                     return;
                                                   }
                                                   CourseOptions courseOptions = CourseOptions();
@@ -452,7 +618,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
         includeBorders: true);
   }
 
-  CourseOptions courseOptionsFromData(Map courseInfo){
+  CourseOptions courseOptionsFromInfo(Map courseInfo){
     CourseOptions options = CourseOptions();
     options.lectureCount = courseInfo['lectureCount'];
     options.tutorialCount = courseInfo['tutorialCount'];
@@ -465,7 +631,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
   Column courseColumn(int index, Map courseMap, String courseName) {
     int numWeeks = 13;
-    CourseOptions courseOptions = courseOptionsFromData(courseMap['info']);
+    CourseOptions courseOptions = courseOptionsFromInfo(courseMap['info']);
     Map courseData = courseMap['data'];
     int numRows = courseData.length;
 
@@ -531,7 +697,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     } else {
       if(courseOptions.lectureCount>0){
         String plural = courseOptions.lectureCount>1 ? "s" : "";
-        widgetList.add(press(label: Strings.firstLecture + plural, fieldName: Strings.firstLecture, count: courseOptions.lectureCount));
+        widgetList.add(press(label: Strings.lecture + plural, fieldName: Strings.lecture, count: courseOptions.lectureCount));
         widgetList.add(divv);
       }
       if(courseOptions.tutorialCount>0){

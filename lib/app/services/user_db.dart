@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
@@ -99,6 +100,70 @@ class UserDB extends ChangeNotifier {
     await userDocument.update({'courseProgressMap' : courseProgressMap});
     await userDocument.update({'courseOrder' : courseOrder});
     notifyListeners();
+  }
+
+  editCourse(String courseName, String newCourseName, CourseOptions newCourseOptions){
+    bool changesMade = false;
+    CourseOptions courseOptionsFromInfo(Map courseInfo){
+      CourseOptions options = CourseOptions();
+      options.lectureCount = courseInfo['lectureCount'];
+      options.tutorialCount = courseInfo['tutorialCount'];
+      options.workShopCount = courseInfo['workshopCount'];
+      if(options.lectureCount + options.tutorialCount + options.workShopCount == 0) {
+        options.isSingleton = true;
+      }
+      return options;
+    }
+    Map courseMap = courseProgressMap[courseName];
+    CourseOptions oldCourseOptions = courseOptionsFromInfo(courseMap["info"]);
+    Map courseData = courseMap['data'];
+    if(oldCourseOptions.lectureCount!=newCourseOptions.lectureCount){
+      changesMade = true;
+      if(newCourseOptions.lectureCount==0){
+        courseData.remove(Strings.lecture);
+      } else if(oldCourseOptions.lectureCount==0 && newCourseOptions.lectureCount>0){
+        courseData[Strings.lecture]=[];
+      } else if(oldCourseOptions.lectureCount>newCourseOptions.lectureCount){
+        courseData[Strings.lecture].clear();
+      }
+    }
+    if(oldCourseOptions.tutorialCount!=newCourseOptions.tutorialCount){
+      changesMade = true;
+      if(newCourseOptions.tutorialCount==0){
+        courseData.remove(Strings.tutorial);
+      } else if(oldCourseOptions.tutorialCount==0 && newCourseOptions.tutorialCount>0){
+        courseData[Strings.tutorial]=[];
+      } else if(oldCourseOptions.tutorialCount>newCourseOptions.tutorialCount){
+        courseData[Strings.tutorial].clear();
+      }
+    }
+    if(oldCourseOptions.workShopCount!=newCourseOptions.workShopCount){
+      changesMade = true;
+      if(newCourseOptions.workShopCount==0){
+        courseData.remove(Strings.workshop);
+      } else if(oldCourseOptions.workShopCount==0 && newCourseOptions.workShopCount>0){
+        courseData[Strings.workshop]=[];
+      } else if(oldCourseOptions.workShopCount>newCourseOptions.workShopCount){
+        courseData[Strings.workshop].clear();
+      }
+    }
+    Map newInfoMap = {
+      'lectureCount': newCourseOptions.lectureCount,
+      'tutorialCount': newCourseOptions.tutorialCount,
+      'workshopCount': newCourseOptions.workShopCount
+    };
+    courseMap["info"] = newInfoMap;
+    if(newCourseName!=courseName){
+      changesMade = true;
+      courseProgressMap[newCourseName] = courseMap;
+      courseProgressMap.remove(courseName);
+    }
+    int index = courseOrder.indexOf(courseName);
+    courseOrder.removeAt(index);
+    courseOrder.insert(index, newCourseName);
+    if(changesMade){
+      updateCourses();
+    }
   }
 
   swapCourseOrder(int newIndex, int oldIndex){

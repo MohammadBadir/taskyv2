@@ -11,7 +11,7 @@ class Strings {
 
   //New Course Table
   static const String newCourseTableTitle = "New Course Table";
-  static const String firstLecture = "Lecture";
+  static const String lecture = "Lecture";
   static const String secondLecture = "SecondLecture";
   static const String tutorial = "Tutorial";
   static const String workshop = "Workshop";
