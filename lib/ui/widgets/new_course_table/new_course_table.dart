@@ -88,9 +88,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     listContent.add(Text(MediaQuery.of(context).size.width.toString()));
 
     List<String> dialogOptions = [
-      "Lecture + Tutorial",
-      "Lecture only",
-      "No Label"
+      "Weekly Lecture Count:",
+      "Weekly Tutorial Count:",
+      "Weekly Workshop Count:"
     ];
 
     return Scaffold(
@@ -108,7 +108,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
           ),
         ],
       )) : ScreenTooSmallWidget(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(
         child: /*Provider.of<UserDB>(context).editMode ? Icon(Icons.check_rounded, size: 35.0,) :*/ Icon(Icons.edit),
         backgroundColor: Colors.blueAccent,
         onPressed: (){
@@ -127,122 +127,122 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                           children: List.generate(
                               courseOrder.length,
                                   (index) => Container(
-                                  key: UniqueKey(),
-                                  height: 50,
-                                  child: Card(
-                                    color: Colors.white,
-                                    child: ClipPath(
-                                      child: Container(
-                                          child: Center(
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment
-                                                  .spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(horizontal: 8.0),
-                                                  child: Text(courseOrder[index],
-                                                    textAlign: TextAlign.start,
-                                                    style: TextStyle(
-                                                        fontSize: 24,
-                                                        fontWeight: FontWeight
-                                                            .bold),),
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    TextButton(
-                                                      onPressed: () {
+                                key: UniqueKey(),
+                                height: 50,
+                                child: Card(
+                                  color: Colors.white,
+                                  child: ClipPath(
+                                    child: Container(
+                                        child: Center(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment
+                                                .spaceBetween,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(horizontal: 8.0),
+                                                child: Text(courseOrder[index],
+                                                  textAlign: TextAlign.start,
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight
+                                                          .bold),),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () {
 
-                                                      },
-                                                      child: Text("EDIT"),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        showDialog(
-                                                            context: context,
-                                                            builder: (
-                                                                BuildContext context) {
-                                                              return StatefulBuilder(
-                                                                builder: (context,
-                                                                    setState) {
-                                                                  return AlertDialog(
-                                                                    title: Text(
-                                                                        "Are you sure you want to delete this course?"),
-                                                                    content: Text(
-                                                                        "This action cannot be undone"),
-                                                                    actions: [
-                                                                      TextButton(
+                                                    },
+                                                    child: Text("EDIT"),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      showDialog(
+                                                          context: context,
+                                                          builder: (
+                                                              BuildContext context) {
+                                                            return StatefulBuilder(
+                                                              builder: (context,
+                                                                  setState) {
+                                                                return AlertDialog(
+                                                                  title: Text(
+                                                                      "Are you sure you want to delete this course?"),
+                                                                  content: Text(
+                                                                      "This action cannot be undone"),
+                                                                  actions: [
+                                                                    TextButton(
+                                                                      onPressed: () {
+                                                                        String courseName = courseOrder[index];
+                                                                        courseOrder
+                                                                            .removeAt(
+                                                                            index);
+                                                                        courseProgressMap
+                                                                            .remove(
+                                                                            courseName);
+                                                                        Provider
+                                                                            .of<
+                                                                            UserDB>(
+                                                                            context,
+                                                                            listen: false)
+                                                                            .updateCourses();
+                                                                        Navigator
+                                                                            .of(
+                                                                            context)
+                                                                            .pop();
+                                                                      },
+                                                                      child: Text(
+                                                                          "Yes"),
+                                                                    ),
+                                                                    TextButton(
                                                                         onPressed: () {
-                                                                          String courseName = courseOrder[index];
-                                                                          courseOrder
-                                                                              .removeAt(
-                                                                              index);
-                                                                          courseProgressMap
-                                                                              .remove(
-                                                                              courseName);
-                                                                          Provider
-                                                                              .of<
-                                                                              UserDB>(
-                                                                              context,
-                                                                              listen: false)
-                                                                              .updateCourses();
                                                                           Navigator
                                                                               .of(
                                                                               context)
                                                                               .pop();
                                                                         },
                                                                         child: Text(
-                                                                            "Yes"),
-                                                                      ),
-                                                                      TextButton(
-                                                                          onPressed: () {
-                                                                            Navigator
-                                                                                .of(
-                                                                                context)
-                                                                                .pop();
-                                                                          },
-                                                                          child: Text(
-                                                                              "No")
-                                                                      ),
-                                                                    ],
-                                                                  );
-                                                                },
-                                                              );
-                                                            }
-                                                        );
-                                                      },
-                                                      child: Text("DELETE",
-                                                        style: TextStyle(
-                                                            color: Colors.red),),
+                                                                            "No")
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              },
+                                                            );
+                                                          }
+                                                      );
+                                                    },
+                                                    child: Text("DELETE",
+                                                      style: TextStyle(
+                                                          color: Colors.red),),
+                                                  ),
+                                                  ReorderableDragStartListener(
+                                                    index: index,
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
+                                                      child: Icon(Icons.drag_handle),
                                                     ),
-                                                    ReorderableDragStartListener(
-                                                      index: index,
-                                                      child: Padding(
-                                                        padding: const EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
-                                                        child: Icon(Icons.drag_handle),
-                                                      ),
-                                                    )
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
+                                                  )
+                                                ],
+                                              ),
+                                            ],
                                           ),
-                                          decoration: BoxDecoration(
-                                              border: Border(
-                                                  left: BorderSide(
-                                                      color: Colors.blueAccent,
-                                                      width: 5),
-                                                  right: BorderSide(
-                                                      color: Colors.blueAccent,
-                                                      width: 5)))
-                                      ),
-                                      clipper: ShapeBorderClipper(
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(
-                                                  3))),
+                                        ),
+                                        decoration: BoxDecoration(
+                                            border: Border(
+                                                left: BorderSide(
+                                                    color: Colors.blueAccent,
+                                                    width: 5),
+                                                right: BorderSide(
+                                                    color: Colors.blueAccent,
+                                                    width: 5)))
                                     ),
+                                    clipper: ShapeBorderClipper(
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                3))),
                                   ),
-                                )
+                                ),
+                              )
                           ),
                           onReorder: (int oldIndex, int newIndex) {
                             Provider.of<UserDB>(context, listen: false).swapCourseOrder(newIndex, oldIndex);
@@ -256,26 +256,23 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     String courseName;
-                                    int _selected;
+                                    int lecCount=1;
+                                    int tutCount=1;
+                                    int wrkCount=0;
                                     return StatefulBuilder(
                                       builder: (context, setState) {
                                         return AlertDialog(
                                           title: Text(
-                                              " Enter Course Details"),
+                                              " Enter Course Details"
+                                          ),
                                           content: Column(
                                             mainAxisSize: MainAxisSize
                                                 .min,
                                             crossAxisAlignment: CrossAxisAlignment
                                                 .start,
                                             children: [
-                                              Text(
-                                                "    Course Format:",
-                                                style: TextStyle(
-                                                    color: Colors
-                                                        .grey),),
-                                              SizedBox(height: 10,),
                                               Container(
-                                                height: 150,
+                                                height: 180,
                                                 width: MediaQuery
                                                     .of(context)
                                                     .size
@@ -287,28 +284,68 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                     itemBuilder: (
                                                         BuildContext context,
                                                         int index) {
-                                                      return RadioListTile(
-                                                          title: Text(
-                                                              dialogOptions[index]),
-                                                          value: index,
-                                                          groupValue: _selected,
-                                                          onChanged: (
-                                                              value) {
-                                                            setState(() {
-                                                              _selected =
-                                                                  index;
-                                                            });
-                                                          });
+                                                      return Padding(
+                                                        padding: const EdgeInsets.all(16.0),
+                                                        child: Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            Text(" "+dialogOptions[index],
+                                                            style: TextStyle(color: Colors.grey),),
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.end,
+                                                              children: [
+                                                                TextButton(onPressed: () { setState((){
+                                                                  switch(index){
+                                                                    case 0:{
+                                                                      if(lecCount>0) lecCount--;
+                                                                    }
+                                                                    break;
+                                                                    case 1:{
+                                                                      if(tutCount>0) tutCount--;
+                                                                    }
+                                                                    break;
+                                                                    case 2:{
+                                                                      if(wrkCount>0) wrkCount--;
+                                                                    }
+                                                                    break;
+                                                                  }
+                                                                }); },
+                                                                    child: Icon(Icons.arrow_back_ios_new)),
+                                                                Text(" "+(index==0 ? lecCount : index==1 ? tutCount : wrkCount).toString()+" "),
+                                                                TextButton(onPressed: () { setState((){
+                                                                  switch(index){
+                                                                    case 0:{
+                                                                      if(lecCount<2) lecCount++;
+                                                                    }
+                                                                    break;
+                                                                    case 1:{
+                                                                      if(tutCount<2) tutCount++;
+                                                                    }
+                                                                    break;
+                                                                    case 2:{
+                                                                      if(wrkCount<2) wrkCount++;
+                                                                    }
+                                                                    break;
+                                                                  }
+                                                                }); },
+                                                                    child: Icon(Icons.arrow_forward_ios))                                                              ],
+                                                            )
+                                                          ],
+                                                        ),
+                                                      );
                                                     }),
                                               ),
-                                              TextFormField(
-                                                decoration: InputDecoration(
-                                                  labelText: "Course Name",
+                                              Padding(
+                                                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 0.0, 0.0),
+                                                child: TextFormField(
+                                                  decoration: InputDecoration(
+                                                    labelText: " Course Name",
+                                                  ),
+                                                  onChanged: (
+                                                      String str) {
+                                                    courseName = str;
+                                                  },
                                                 ),
-                                                onChanged: (
-                                                    String str) {
-                                                  courseName = str;
-                                                },
                                               ),
                                             ],
                                           ),
@@ -323,34 +360,13 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                             TextButton(
                                                 onPressed: () {
                                                   if (courseName ==
-                                                      null ||
-                                                      _selected ==
-                                                          null) {
+                                                      null) {
                                                     return;
                                                   }
-                                                  CourseOptions courseOptions;
-                                                  if (_selected ==
-                                                      2) {
-                                                    courseOptions =
-                                                        CourseOptions
-                                                            .singleton();
-                                                  } else {
-                                                    courseOptions =
-                                                        CourseOptions();
-                                                    courseOptions
-                                                        .lectureCount =
-                                                    _selected ==
-                                                        0 ||
-                                                        _selected ==
-                                                            1
-                                                        ? 1
-                                                        : 0;
-                                                    courseOptions
-                                                        .tutorialCount =
-                                                    _selected == 0
-                                                        ? 1
-                                                        : 0;
-                                                  }
+                                                  CourseOptions courseOptions = CourseOptions();
+                                                  courseOptions.lectureCount = lecCount;
+                                                  courseOptions.tutorialCount = tutCount;
+                                                  courseOptions.workShopCount = wrkCount;
                                                   Provider.of<
                                                       UserDB>(
                                                       context,
@@ -392,7 +408,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                 );
               }
           );
-          },
+        },
       ),
     );
   }
