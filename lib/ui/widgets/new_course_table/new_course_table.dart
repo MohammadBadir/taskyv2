@@ -293,6 +293,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                                           } else if(lecCount+tutCount+wrkCount==0){
                                                                             showMyDialog(context, "Course cannot be empty");
                                                                             return;
+                                                                          } else if(oldCourseName!=newCourseName && courseOrder.contains(newCourseName)){
+                                                                            showMyDialog(context, "Course already exists!");
+                                                                            return;
                                                                           }
                                                                           CourseOptions newCourseOptions = CourseOptions();
                                                                           newCourseOptions.lectureCount = lecCount;
@@ -527,6 +530,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                     return;
                                                   } else if(lecCount+tutCount+wrkCount==0){
                                                     showMyDialog(context, "Course cannot be empty");
+                                                    return;
+                                                  } else if(courseOrder.contains(courseName)){
+                                                    showMyDialog(context, "Course already exists!");
                                                     return;
                                                   }
                                                   CourseOptions courseOptions = CourseOptions();
