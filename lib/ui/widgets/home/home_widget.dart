@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
+import 'package:tasky/app/services/user_db.dart';
+import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 
 import '../../../app/constants/strings.dart';
 import '../../../app/services/firebase_auth_service.dart';
@@ -11,29 +13,20 @@ class HomeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("Home")),),
+      appBar: taskyAppBar(context, "Home"),
       drawer: NavigationDrawer(),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            CircleAvatar(
-              maxRadius: 50,
-              backgroundImage: NetworkImage(Provider.of<FirebaseAuthService>(context).currentUser().photoURL),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                Provider.of<FirebaseAuthService>(context).currentUser().displayName,
-                style: Theme.of(context).textTheme.headline4,
-              ),
-            ),
-            RaisedButton(
-              onPressed: () {
-                context.read<FirebaseAuthService>().signOut();
-              },
-              child: Text(Strings.signOut),
-            ),
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text("Welcome back, "+Provider.of<UserDB>(context).displayName,
+              style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold),),
+            Text("You have no pending tasks" + Provider.of<UserDB>(context).currentSemester.toString(),
+              style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold),)
           ],
         ),
       ),

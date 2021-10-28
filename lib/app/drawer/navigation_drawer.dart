@@ -5,7 +5,6 @@ import 'package:tasky/app/models/user_data.dart';
 import 'package:tasky/app/services/firebase_auth_service.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
-import 'package:tasky/ui/widgets/course_table/course_table.dart';
 import 'package:tasky/ui/widgets/homework_table/task_table.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
 import 'package:tasky/ui/widgets/new_course_table/new_course_table.dart';
@@ -53,7 +52,14 @@ class NavigationDrawer extends StatelessWidget {
           ],
         ),
       ),
-    ), Divider(),
+    ),
+      TextButton(
+        onPressed: () {
+          context.read<FirebaseAuthService>().signOut();
+        },
+        child: Text(Strings.signOut),
+      ),
+      Divider(),
       ListTile(title: Text("  Home"),onTap: (){
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(
@@ -82,16 +88,16 @@ class NavigationDrawer extends StatelessWidget {
           ),
         );
       },),
-      ListTile(title: Text("  Course Table"),onTap: (){
-        Navigator.of(context).pop();
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (BuildContext context) {
-              return CourseTableWidget();
-            },
-          ),
-        );
-      },),
+      // ListTile(title: Text("  Course Table"),onTap: (){
+      //   Navigator.of(context).pop();
+      //   Navigator.of(context).pushReplacement(
+      //     MaterialPageRoute(
+      //       builder: (BuildContext context) {
+      //         return CourseTableWidget();
+      //       },
+      //     ),
+      //   );
+      // },),
       ListTile(title: Text("  New Course Table"),onTap: (){
         Navigator.of(context).pop();
         Navigator.of(context).pushReplacement(

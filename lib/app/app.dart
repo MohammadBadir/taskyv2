@@ -36,14 +36,14 @@ class _MyAppState extends State<MyApp> {
                 if (user == null) {
                   return const SignInWidget();
                 } else {
-                  return Provider.of<FirebaseAuthService>(context).isInitialized ? NewCourseTableWidget() : FutureBuilder(
+                  return Provider.of<FirebaseAuthService>(context).isInitialized ? HomeWidget() : FutureBuilder(
                       future: Provider.of<UserDB>(context).downloadCourseData(),
                       builder: (context,snapshot){
                         if(snapshot.hasError){
                           return Center(child: Text(snapshot.error.toString()));
                         } else if(snapshot.connectionState == ConnectionState.done){
                           Provider.of<FirebaseAuthService>(context).markInitialized();
-                          return NewCourseTableWidget();
+                          return HomeWidget();
                         }
                         return Center(child: CircularProgressIndicator());
                       });

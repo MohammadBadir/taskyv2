@@ -5,14 +5,21 @@ import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
-  //Map<String,Map<String,List<int>>> courseProgressMap;
+  String displayName;
+
+  Map progressMapsBySemester;
+  Map courseOrderBySemester;
+  List semesterOrder;
+  int currentSemester;
+
   Map courseProgressMap;
   List courseOrder;
+
   DocumentReference userDocument;
-  int debugNum = 0;
-  // Map courseGradesMap;
-  List homeworkList;
   List taskList;
+
+  int debugNum = 0;
+  List homeworkList; //backwards compatibility
 
   downloadCourseData() async{
     print("Fetching Data");
@@ -23,11 +30,26 @@ class UserDB extends ChangeNotifier {
     if(!userSnapshot.exists){
       courseOrder = [];
       courseProgressMap = {};
-      await userDocument.set({'courseOrder' : courseOrder,'courseProgressMap' : courseProgressMap});
+
+      semesterOrder = ["Winter 2020-2021"];
+      currentSemester = 0;
+      progressMapsBySemester = {semesterOrder[currentSemester] : courseProgressMap};
+      courseOrderBySemester = {semesterOrder[currentSemester] : courseOrder};
+
+      displayName = "TaskyTester";
+
+      await userDocument.set({'courseOrderBySemester' : courseOrderBySemester,'progressMapsBySemester' : progressMapsBySemester, 'semesterOrder' : semesterOrder, 'currentSemester' : currentSemester, 'displayName' : "TaskyTester"});
     } else {
       Map<String, dynamic> userData = userSnapshot.data();
-      courseOrder = userData['courseOrder'];
-      courseProgressMap = userData['courseProgressMap'];
+      courseOrderBySemester = userData['courseOrderBySemester'];
+      progressMapsBySemester = userData['progressMapsBySemester'];
+      semesterOrder = userData['semesterOrder'];
+      currentSemester = userData['currentSemester'];
+
+      courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
+      courseProgressMap = progressMapsBySemester[semesterOrder[currentSemester]];
+
+      displayName = userData['displayName'];
     }
 
     userSnapshot = await userDocument.get();
@@ -49,17 +71,29 @@ class UserDB extends ChangeNotifier {
     print("Data Fetched");
   }
 
-  updateProgressMap(Map newMap){
-    courseProgressMap = newMap;
-    userDocument.update({'courseProgressMap' : courseProgressMap});
-    notifyListeners();
-    //print("inFunct "+courseProgressMap.toString());
-  }
+  // updateProgressMap(Map newMap){
+  //   courseProgressMap = newMap;
+  //   userDocument.update({'courseProgressMap' : courseProgressMap});
+  //   notifyListeners();
+  //   //print("inFunct "+courseProgressMap.toString());
+  // }
 
   updateCourses(){
-    userDocument.update({'courseOrder' : courseOrder});
-    userDocument.update({'courseProgressMap' : courseProgressMap});
+    userDocument.update({'courseOrderBySemester' : courseOrderBySemester});
+    userDocument.update({'progressMapsBySemester' : progressMapsBySemester});
     notifyListeners();
+  }
+
+  // addSemester(String title){
+  //   assert(!semesterOrder.contains(title));
+  //
+  // }
+
+  changeSemester(int targetSemester){
+    if(currentSemester!=targetSemester){
+      currentSemester = targetSemester;
+      notifyListeners();
+    }
   }
 
   addWord(String word) async{
@@ -98,9 +132,7 @@ class UserDB extends ChangeNotifier {
     };
     courseProgressMap[courseName]= {'info': infoMap, 'data': dataMap};
     courseOrder.add(courseName);
-    await userDocument.update({'courseProgressMap' : courseProgressMap});
-    await userDocument.update({'courseOrder' : courseOrder});
-    notifyListeners();
+    updateCourses();
   }
 
   editCourse(String courseName, String newCourseName, CourseOptions newCourseOptions){
