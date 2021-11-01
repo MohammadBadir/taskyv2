@@ -7,13 +7,18 @@ import 'package:tasky/app/models/course_options.dart';
 class UserDB extends ChangeNotifier {
   String displayName;
 
-  Map progressMapsBySemester;
-  Map courseOrderBySemester;
   List semesterOrder;
   int currentSemester;
 
+  Map progressMapsBySemester;
+  Map courseOrderBySemester;
+
   Map courseProgressMap;
   List courseOrder;
+
+  //Map pendingTaskMapBySemester;
+  Map pendingTaskListBySemester;
+  List pendingTaskList;
 
   DocumentReference userDocument;
   List taskList;
@@ -28,26 +33,42 @@ class UserDB extends ChangeNotifier {
     userDocument = FirebaseFirestore.instance.collection('testCollection').doc(uid);
     DocumentSnapshot userSnapshot = await userDocument.get();
     if(!userSnapshot.exists){
+      //New user - create data
       courseOrder = [];
       courseProgressMap = {};
+      pendingTaskList = ["Some Example Task"];
 
       semesterOrder = ["Winter 2020-2021"];
       currentSemester = 0;
+
       progressMapsBySemester = {semesterOrder[currentSemester] : courseProgressMap};
       courseOrderBySemester = {semesterOrder[currentSemester] : courseOrder};
+      pendingTaskListBySemester = {semesterOrder[currentSemester] : pendingTaskList};
 
       displayName = "TaskyTester";
 
-      await userDocument.set({'courseOrderBySemester' : courseOrderBySemester,'progressMapsBySemester' : progressMapsBySemester, 'semesterOrder' : semesterOrder, 'currentSemester' : currentSemester, 'displayName' : "TaskyTester"});
+      await userDocument.set({
+        'courseOrderBySemester' : courseOrderBySemester,
+        'progressMapsBySemester' : progressMapsBySemester,
+        'pendingTaskListBySemester' : pendingTaskListBySemester,
+        'semesterOrder' : semesterOrder,
+        'currentSemester' : currentSemester,
+        'displayName' : displayName
+      });
     } else {
+      //Existing user - fetch data
       Map<String, dynamic> userData = userSnapshot.data();
+
       courseOrderBySemester = userData['courseOrderBySemester'];
       progressMapsBySemester = userData['progressMapsBySemester'];
+      pendingTaskListBySemester = userData['pendingTaskListBySemester'];
+
       semesterOrder = userData['semesterOrder'];
       currentSemester = userData['currentSemester'];
 
       courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
       courseProgressMap = progressMapsBySemester[semesterOrder[currentSemester]];
+      pendingTaskList = pendingTaskListBySemester[semesterOrder[currentSemester]];
 
       displayName = userData['displayName'];
     }
@@ -205,6 +226,15 @@ class UserDB extends ChangeNotifier {
     }
     var pair = courseOrder.removeAt(oldIndex);
     courseOrder.insert(newIndex, pair);
+    updateCourses();
+  }
+
+  swapPendingTaskOrder(int newIndex, int oldIndex){
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    var pair = pendingTaskList.removeAt(oldIndex);
+    pendingTaskList.insert(newIndex, pair);
     updateCourses();
   }
 

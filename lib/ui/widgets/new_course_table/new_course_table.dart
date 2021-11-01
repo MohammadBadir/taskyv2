@@ -139,7 +139,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                     courseProgressMap.forEach((key, value) { totalWorkshops+= value["info"]["workshopCount"]; });
                     return AlertDialog(
                       title: Center(child: Text(
-                          courseOrder.length.toString() + " Courses - " +
+                          (courseOrder.isNotEmpty ? courseOrder.length.toString() : "No") + " Courses" + (courseOrder.isNotEmpty ? " - " : "") +
                               (totalLectures>0 ? totalLectures.toString() + " Lectures" : "") +
                               (totalTutorials>0 ? (totalLectures>0 ? ", " : "") + totalTutorials.toString() + " Tutorials" : "") +
                               (totalWorkshops>0 ? (totalLectures>0 || totalTutorials>0 ? ", " : "") + totalWorkshops.toString() + " Workshops" : "")
