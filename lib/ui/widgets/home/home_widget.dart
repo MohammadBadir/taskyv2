@@ -10,6 +10,21 @@ import '../../../app/services/firebase_auth_service.dart';
 class HomeWidget extends StatelessWidget {
   const HomeWidget({Key key}) : super(key: key);
 
+  showMyDialog(BuildContext context, String message){
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text(message),
+            actions: [
+              TextButton(onPressed: ()=>Navigator.of(context).pop(), child: Text("OK"))
+            ],
+          );
+        }
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     List pendingTaskList = Provider.of<UserDB>(context).pendingTaskList;
@@ -30,7 +45,6 @@ class HomeWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 50,
                       fontWeight: FontWeight.bold,
-
                     ),
                   ),
                 ),
@@ -78,12 +92,110 @@ class HomeWidget extends StatelessWidget {
                                             fontWeight: FontWeight
                                                 .bold),),
                                     ),
-                                    ReorderableDragStartListener(
-                                      index: index,
-                                      child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
-                                        child: Icon(Icons.drag_handle),
-                                      ),
+                                    Row(
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  String oldTaskName = pendingTaskList[index];
+                                                  String newTaskName = oldTaskName;
+                                                  return StatefulBuilder(
+                                                    builder: (context, setState) {
+                                                      return AlertDialog(
+                                                        title: Center(
+                                                          child: Text(
+                                                              "Edit Task Name"
+                                                          ),
+                                                        ),
+                                                        content: Column(
+                                                          mainAxisSize: MainAxisSize
+                                                              .min,
+                                                          crossAxisAlignment: CrossAxisAlignment
+                                                              .start,
+                                                          children: [
+                                                            Container(
+                                                              width: MediaQuery
+                                                                  .of(context)
+                                                                  .size
+                                                                  .width / 4,
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.fromLTRB(16.0, 0.0, 0.0, 0.0),
+                                                                child: TextFormField(
+                                                                  decoration: InputDecoration(
+                                                                    labelText: " Task Name",
+                                                                  ),
+                                                                  initialValue: oldTaskName,
+                                                                  onChanged: (
+                                                                      String str) {
+                                                                    newTaskName = str;
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                  context).pop();
+                                                            },
+                                                            child: Text("Cancel"),
+                                                          ),
+                                                          TextButton(
+                                                              onPressed: () {
+                                                                if (newTaskName == null || newTaskName=="") {
+                                                                  showMyDialog(context, "Task cannot be empty!");
+                                                                  return;
+                                                                } if(oldTaskName!=newTaskName && pendingTaskList.contains(newTaskName)){
+                                                                  showMyDialog(context, "Task already exists!");
+                                                                  return;
+                                                                }
+                                                                Provider.of<
+                                                                    UserDB>(
+                                                                    context,
+                                                                    listen: false)
+                                                                    .editPendingTask(
+                                                                    oldTaskName,
+                                                                    newTaskName);
+                                                                Navigator.of(
+                                                                    context)
+                                                                    .pop();
+                                                              },
+                                                              child: Text(
+                                                                  "Confirm")
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                }
+                                            );
+                                          },
+                                          child: Text("EDIT"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Provider.of<
+                                                UserDB>(
+                                                context,
+                                                listen: false)
+                                                .completePendingTask(index);
+                                          },
+                                          child: Text("COMPLETE",
+                                            style: TextStyle(
+                                                color: Colors.green),),
+                                        ),
+                                        ReorderableDragStartListener(
+                                          index: index,
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(0.0, 0.0, 8.0, 0.0),
+                                            child: Icon(Icons.drag_handle),
+                                          ),
+                                        )
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -115,7 +227,82 @@ class HomeWidget extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {  },
+        onPressed: () {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                String taskName;
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    return AlertDialog(
+                      title: Center(
+                        child: Text(
+                            "Enter Task Name"
+                        ),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize
+                            .min,
+                        crossAxisAlignment: CrossAxisAlignment
+                            .start,
+                        children: [
+                          Container(
+                            width: MediaQuery
+                                .of(context)
+                                .size
+                                .width / 4,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16.0, 0.0, 0.0, 0.0),
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: " Task Name",
+                                ),
+                                onChanged: (
+                                    String str) {
+                                  taskName = str;
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(
+                                context).pop();
+                          },
+                          child: Text("Cancel"),
+                        ),
+                        TextButton(
+                            onPressed: () {
+                              if (taskName == null || taskName=="") {
+                                showMyDialog(context, "Task cannot be empty!");
+                                return;
+                              } if(pendingTaskList.contains(taskName)){
+                                showMyDialog(context, "Task already exists!");
+                                return;
+                              }
+                              Provider.of<
+                                  UserDB>(
+                                  context,
+                                  listen: false)
+                                  .addPendingTask(
+                                  taskName);
+                              Navigator.of(
+                                  context)
+                                  .pop();
+                            },
+                            child: Text(
+                                "Confirm")
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+          );
+        },
       ),
     );
   }

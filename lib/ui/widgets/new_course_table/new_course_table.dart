@@ -288,10 +288,10 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                                     TextButton(
                                                                         onPressed: () {
                                                                           if (newCourseName == null || newCourseName=="") {
-                                                                            showMyDialog(context, "Course must have a name");
+                                                                            showMyDialog(context, "Course must have a name!");
                                                                             return;
                                                                           } else if(lecCount+tutCount+wrkCount==0){
-                                                                            showMyDialog(context, "Course cannot be empty");
+                                                                            showMyDialog(context, "Course cannot be empty!");
                                                                             return;
                                                                           } else if(oldCourseName!=newCourseName && courseOrder.contains(newCourseName)){
                                                                             showMyDialog(context, "Course already exists!");
@@ -339,19 +339,12 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                                   actions: [
                                                                     TextButton(
                                                                       onPressed: () {
-                                                                        String courseName = courseOrder[index];
-                                                                        courseOrder
-                                                                            .removeAt(
-                                                                            index);
-                                                                        courseProgressMap
-                                                                            .remove(
-                                                                            courseName);
                                                                         Provider
                                                                             .of<
                                                                             UserDB>(
                                                                             context,
                                                                             listen: false)
-                                                                            .updateCourses();
+                                                                            .deleteCourse(index);
                                                                         Navigator
                                                                             .of(
                                                                             context)
@@ -526,10 +519,10 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                             TextButton(
                                                 onPressed: () {
                                                   if (courseName == null || courseName=="") {
-                                                    showMyDialog(context, "Course must have a name");
+                                                    showMyDialog(context, "Course must have a name!");
                                                     return;
                                                   } else if(lecCount+tutCount+wrkCount==0){
-                                                    showMyDialog(context, "Course cannot be empty");
+                                                    showMyDialog(context, "Course cannot be empty!");
                                                     return;
                                                   } else if(courseOrder.contains(courseName)){
                                                     showMyDialog(context, "Course already exists!");

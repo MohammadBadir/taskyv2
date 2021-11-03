@@ -75,6 +75,7 @@ class UserDB extends ChangeNotifier {
 
     userSnapshot = await userDocument.get();
     Map<String, dynamic> userData = userSnapshot.data();
+
     //Backwards compatibility - Task List
     if(!userData.containsKey('taskList')){
       if(userData.containsKey('homeworkList')){
@@ -128,7 +129,37 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  addCourse(String courseName, CourseOptions courseOptions) async{
+  addPendingTask(String task){
+    pendingTaskList.add(task);
+    userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
+    notifyListeners();
+  }
+
+  editPendingTask(String oldTask, String newTask){
+    int index = pendingTaskList.indexOf(oldTask);
+    pendingTaskList.removeAt(index);
+    pendingTaskList.insert(index, newTask);
+    userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
+    notifyListeners();
+  }
+
+  swapPendingTaskOrder(int newIndex, int oldIndex){
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    var pair = pendingTaskList.removeAt(oldIndex);
+    pendingTaskList.insert(newIndex, pair);
+    userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
+    notifyListeners();
+  }
+
+  completePendingTask(int index){
+    pendingTaskList.removeAt(index);
+    userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
+    notifyListeners();
+  }
+
+  addCourse(String courseName, CourseOptions courseOptions){
     assert(FirebaseAuth.instance.currentUser != null);
     assert(courseOrder != null);
     assert(userDocument != null);
@@ -229,12 +260,10 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
-  swapPendingTaskOrder(int newIndex, int oldIndex){
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
-    }
-    var pair = pendingTaskList.removeAt(oldIndex);
-    pendingTaskList.insert(newIndex, pair);
+  deleteCourse(int index){
+    String courseName = courseOrder[index];
+    courseOrder.removeAt(index);
+    courseProgressMap.remove(courseName);
     updateCourses();
   }
 
