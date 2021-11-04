@@ -19,6 +19,8 @@ class UserDB extends ChangeNotifier {
   //Map pendingTaskMapBySemester;
   Map pendingTaskListBySemester;
   List pendingTaskList;
+  String deletedTask;
+  int deletedTaskIndex;
 
   DocumentReference userDocument;
   List taskList;
@@ -154,7 +156,15 @@ class UserDB extends ChangeNotifier {
   }
 
   completePendingTask(int index){
+    deletedTask = pendingTaskList[index];
+    deletedTaskIndex = index;
     pendingTaskList.removeAt(index);
+    userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
+    notifyListeners();
+  }
+
+  undoCompleteTask(){
+    pendingTaskList.insert(deletedTaskIndex, deletedTask);
     userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
     notifyListeners();
   }

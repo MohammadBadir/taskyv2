@@ -183,6 +183,21 @@ class HomeWidget extends StatelessWidget {
                                                 context,
                                                 listen: false)
                                                 .completePendingTask(index);
+                                            final snackBar = SnackBar(
+                                              content: Text("Task marked as complete"),
+                                              action: SnackBarAction(
+                                                label: "UNDO",
+                                                onPressed: (){
+                                                  Provider.of<
+                                                      UserDB>(
+                                                      context,
+                                                      listen: false)
+                                                      .undoCompleteTask();
+                                                },
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
                                           },
                                           child: Text("COMPLETE",
                                             style: TextStyle(
