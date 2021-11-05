@@ -7,6 +7,7 @@ import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
+import 'package:tasky/ui/widgets/homework_table/task_table.dart';
 import 'package:tasky/ui/widgets/new_course_table/new_course_table.dart';
 
 import 'models/user_data.dart';

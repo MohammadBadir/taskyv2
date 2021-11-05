@@ -4,6 +4,7 @@ import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/models/course_options.dart';
 import 'package:tasky/app/services/user_db.dart';
+import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 import 'package:tasky/ui/widgets/new_course_table/screen_too_small.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
@@ -41,20 +42,6 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
   }
 
   T cast<T>(x) => x is T ? x : null;
-
-  showMyDialog(BuildContext context, String message){
-    showDialog(
-        context: context,
-        builder: (BuildContext context){
-          return AlertDialog(
-            title: Text(message),
-            actions: [
-              TextButton(onPressed: ()=>Navigator.of(context).pop(), child: Text("OK"))
-            ],
-          );
-        }
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -267,6 +254,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                                         child: TextFormField(
                                                                           decoration: InputDecoration(
                                                                             labelText: " Course Name",
+                                                                              hintText: "e.g. Calculus 1m"
                                                                           ),
                                                                           initialValue: oldCourseName,
                                                                           onChanged: (
@@ -288,13 +276,13 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                                     TextButton(
                                                                         onPressed: () {
                                                                           if (newCourseName == null || newCourseName=="") {
-                                                                            showMyDialog(context, "Course must have a name!");
+                                                                            showBasicDialog(context, "Course must have a name!");
                                                                             return;
                                                                           } else if(lecCount+tutCount+wrkCount==0){
-                                                                            showMyDialog(context, "Course cannot be empty!");
+                                                                            showBasicDialog(context, "Course cannot be empty!");
                                                                             return;
                                                                           } else if(oldCourseName!=newCourseName && courseOrder.contains(newCourseName)){
-                                                                            showMyDialog(context, "Course already exists!");
+                                                                            showBasicDialog(context, "Course already exists!");
                                                                             return;
                                                                           }
                                                                           CourseOptions newCourseOptions = CourseOptions();
@@ -499,6 +487,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                 child: TextFormField(
                                                   decoration: InputDecoration(
                                                     labelText: " Course Name",
+                                                    hintText: "e.g. Calculus 1m"
                                                   ),
                                                   onChanged: (
                                                       String str) {
@@ -519,13 +508,13 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                             TextButton(
                                                 onPressed: () {
                                                   if (courseName == null || courseName=="") {
-                                                    showMyDialog(context, "Course must have a name!");
+                                                    showBasicDialog(context, "Course must have a name!");
                                                     return;
                                                   } else if(lecCount+tutCount+wrkCount==0){
-                                                    showMyDialog(context, "Course cannot be empty!");
+                                                    showBasicDialog(context, "Course cannot be empty!");
                                                     return;
                                                   } else if(courseOrder.contains(courseName)){
-                                                    showMyDialog(context, "Course already exists!");
+                                                    showBasicDialog(context, "Course already exists!");
                                                     return;
                                                   }
                                                   CourseOptions courseOptions = CourseOptions();

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -19,14 +21,17 @@ class UserDB extends ChangeNotifier {
   //Map pendingTaskMapBySemester;
   Map pendingTaskListBySemester;
   List pendingTaskList;
-  String deletedTask;
-  int deletedTaskIndex;
+  String deletedTask = "Aspartame";
+  int deletedTaskIndex = 0;
+
+  List homeworkList;
+  Map deletedHomework;
+  int deletedHomeworkIndex;
 
   DocumentReference userDocument;
-  List taskList;
+  bool firstTime;
 
   int debugNum = 0;
-  List homeworkList; //backwards compatibility
 
   downloadCourseData() async{
     print("Fetching Data");
@@ -36,6 +41,8 @@ class UserDB extends ChangeNotifier {
     DocumentSnapshot userSnapshot = await userDocument.get();
     if(!userSnapshot.exists){
       //New user - create data
+      firstTime=true;
+
       courseOrder = [];
       courseProgressMap = {};
       pendingTaskList = ["Some Example Task"];
@@ -47,18 +54,23 @@ class UserDB extends ChangeNotifier {
       courseOrderBySemester = {semesterOrder[currentSemester] : courseOrder};
       pendingTaskListBySemester = {semesterOrder[currentSemester] : pendingTaskList};
 
+      homeworkList = [];
+
       displayName = "TaskyTester";
 
       await userDocument.set({
         'courseOrderBySemester' : courseOrderBySemester,
         'progressMapsBySemester' : progressMapsBySemester,
         'pendingTaskListBySemester' : pendingTaskListBySemester,
+        'homeworkList' : homeworkList,
         'semesterOrder' : semesterOrder,
         'currentSemester' : currentSemester,
         'displayName' : displayName
       });
     } else {
       //Existing user - fetch data
+      firstTime=false;
+
       Map<String, dynamic> userData = userSnapshot.data();
 
       courseOrderBySemester = userData['courseOrderBySemester'];
@@ -72,24 +84,13 @@ class UserDB extends ChangeNotifier {
       courseProgressMap = progressMapsBySemester[semesterOrder[currentSemester]];
       pendingTaskList = pendingTaskListBySemester[semesterOrder[currentSemester]];
 
+      homeworkList = userData['homeworkList'];
+
       displayName = userData['displayName'];
     }
 
     userSnapshot = await userDocument.get();
-    Map<String, dynamic> userData = userSnapshot.data();
-
-    //Backwards compatibility - Task List
-    if(!userData.containsKey('taskList')){
-      if(userData.containsKey('homeworkList')){
-        homeworkList = userData['homeworkList'];
-        taskList = homeworkList.map((e) => {'courseName' : e['courseName'],'hwName':e['hwName'],'due' : e['due'], 'taskType' : 'hw'}).toList();
-      } else {
-        taskList = [];
-      }
-      await userDocument.update({'taskList' : taskList});
-    } else {
-      taskList = userData['taskList'];
-    }
+    //Map<String, dynamic> userData = userSnapshot.data();
 
     await userDocument.update({'zMiscData' : {'lastLogin' : DateTime.now().toString(), 'currentVer' : Strings.version}});
     print("Data Fetched");
@@ -163,7 +164,7 @@ class UserDB extends ChangeNotifier {
     notifyListeners();
   }
 
-  undoCompleteTask(){
+  undoCompletePendingTask(){
     pendingTaskList.insert(deletedTaskIndex, deletedTask);
     userDocument.update({'pendingTaskListBySemester' : pendingTaskListBySemester});
     notifyListeners();
@@ -283,22 +284,46 @@ class UserDB extends ChangeNotifier {
   //   notifyListeners();
   // }
 
-  addTask(String courseName, String hwName, DateTime dueDate, String taskType){
-    taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
-    userDocument.update({'taskList' : taskList});
+  addHomework(String courseName, String hwName, DateTime dueDate, String taskType){
+    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
+    userDocument.update({'homeworkList' : homeworkList});
     notifyListeners();
   }
 
-  completeTask(Map hw){
-    taskList.remove(hw);
-    userDocument.update({'taskList' : taskList});
+  completeHomework(int index){
+    deletedHomeworkIndex = index;
+    deletedHomework = homeworkList[index];
+    homeworkList.removeAt(index);
+    userDocument.update({'homeworkList' : homeworkList});
     notifyListeners();
+  }
+
+  undoCompleteHomework(){
+    homeworkList.insert(deletedHomeworkIndex, deletedHomework);
+    userDocument.update({'homeworkList' : homeworkList});
+    notifyListeners();
+  }
+
+  String completeHomeworkMessage(int index){
+    List sortedTaskList = homeworkList;
+    sortedTaskList.sort((var a, var b) => a['due'].compareTo(b['due']));
+    var currentTime = DateTime.now();
+    int timeDiff(int index) => DateTime.fromMillisecondsSinceEpoch(sortedTaskList[index]['due']).difference(DateTime(currentTime.year,currentTime.month,currentTime.day)).inDays;
+    if(homeworkList[index]['taskType']=='exam'){
+      return "Exam marked as complete";
+    } else {
+      if(timeDiff(index)>=0){
+        return "Homework marked as complete";
+      } else {
+        return "Homework archived";
+      }
+    }
   }
 
   editTask(Map oldHW, String courseName, String hwName, DateTime dueDate, String taskType){
-    taskList.remove(oldHW);
-    taskList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
-    userDocument.update({'taskList' : taskList});
+    homeworkList.remove(oldHW);
+    homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
+    userDocument.update({'homeworkList' : homeworkList});
     notifyListeners();
   }
 

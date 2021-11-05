@@ -3,27 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
+import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 
 import '../../../app/constants/strings.dart';
 import '../../../app/services/firebase_auth_service.dart';
 
 class HomeWidget extends StatelessWidget {
   const HomeWidget({Key key}) : super(key: key);
-
-  showMyDialog(BuildContext context, String message){
-    showDialog(
-        context: context,
-        builder: (BuildContext context){
-          return AlertDialog(
-            title: Text(message),
-            actions: [
-              TextButton(onPressed: ()=>Navigator.of(context).pop(), child: Text("OK"))
-            ],
-          );
-        }
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -147,10 +133,10 @@ class HomeWidget extends StatelessWidget {
                                                           TextButton(
                                                               onPressed: () {
                                                                 if (newTaskName == null || newTaskName=="") {
-                                                                  showMyDialog(context, "Task cannot be empty!");
+                                                                  showBasicDialog(context, "Task cannot be empty!");
                                                                   return;
                                                                 } if(oldTaskName!=newTaskName && pendingTaskList.contains(newTaskName)){
-                                                                  showMyDialog(context, "Task already exists!");
+                                                                  showBasicDialog(context, "Task already exists!");
                                                                   return;
                                                                 }
                                                                 Provider.of<
@@ -178,21 +164,17 @@ class HomeWidget extends StatelessWidget {
                                         ),
                                         TextButton(
                                           onPressed: () {
-                                            Provider.of<
+                                            UserDB userDB = Provider.of<
                                                 UserDB>(
                                                 context,
-                                                listen: false)
-                                                .completePendingTask(index);
+                                                listen: false);
+                                            userDB.completePendingTask(index);
                                             final snackBar = SnackBar(
                                               content: Text("Task marked as complete"),
                                               action: SnackBarAction(
                                                 label: "UNDO",
                                                 onPressed: (){
-                                                  Provider.of<
-                                                      UserDB>(
-                                                      context,
-                                                      listen: false)
-                                                      .undoCompleteTask();
+                                                  userDB.undoCompletePendingTask();
                                                 },
                                               ),
                                             );
@@ -271,6 +253,7 @@ class HomeWidget extends StatelessWidget {
                               child: TextFormField(
                                 decoration: InputDecoration(
                                   labelText: " Task Name",
+                                  hintText: "e.g. Catching up on Calculus"
                                 ),
                                 onChanged: (
                                     String str) {
@@ -292,10 +275,10 @@ class HomeWidget extends StatelessWidget {
                         TextButton(
                             onPressed: () {
                               if (taskName == null || taskName=="") {
-                                showMyDialog(context, "Task cannot be empty!");
+                                showBasicDialog(context, "Task cannot be empty!");
                                 return;
                               } if(pendingTaskList.contains(taskName)){
-                                showMyDialog(context, "Task already exists!");
+                                showBasicDialog(context, "Task already exists!");
                                 return;
                               }
                               Provider.of<
