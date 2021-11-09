@@ -7,6 +7,8 @@ import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/authentication/sign_in/sign_in_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/ui/widgets/home/home_widget.dart';
+import 'package:tasky/ui/widgets/homework_table/task_table.dart';
+import 'package:tasky/ui/widgets/new_course_table/new_course_table.dart';
 
 import 'models/user_data.dart';
 
@@ -17,6 +19,24 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+
+  Widget firstPage(int pageNum){
+    switch(pageNum){
+      case 0:{
+        return HomeWidget();
+      }
+      break;
+      case 1:{
+        return NewCourseTableWidget();
+      }
+      break;
+      case 2:{
+        return TaskWidget();
+      }
+      break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -35,14 +55,14 @@ class _MyAppState extends State<MyApp> {
                 if (user == null) {
                   return const SignInWidget();
                 } else {
-                  return Provider.of<FirebaseAuthService>(context).isInitialized ? HomeWidget() : FutureBuilder(
+                  return Provider.of<FirebaseAuthService>(context).isInitialized ? firstPage(Provider.of<UserDB>(context).defaultPage) : FutureBuilder(
                       future: Provider.of<UserDB>(context).downloadCourseData(),
                       builder: (context,snapshot){
                         if(snapshot.hasError){
                           return Center(child: Text(snapshot.error.toString()));
                         } else if(snapshot.connectionState == ConnectionState.done){
                           Provider.of<FirebaseAuthService>(context).markInitialized();
-                          return HomeWidget();
+                          return firstPage(Provider.of<UserDB>(context).defaultPage);
                         }
                         return Center(child: CircularProgressIndicator());
                       });

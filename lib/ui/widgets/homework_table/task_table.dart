@@ -8,12 +8,14 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/services/user_db.dart';
+import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
+import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 
 class TaskWidget extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     //Auxiliary declarations
-    List sortedTaskList = Provider.of<UserDB>(context).taskList;
+    List sortedTaskList = Provider.of<UserDB>(context).homeworkList;
     sortedTaskList.sort((var a, var b) => a['due'].compareTo(b['due']));
     var courseList = Provider.of<UserDB>(context).courseOrder;
     var currentTime = DateTime.now();
@@ -150,9 +152,19 @@ class TaskWidget extends StatelessWidget{
                     ),
                     TextButton(
                         onPressed: (){
-                          if(selectedCourse==null||taskName==null||dueDate==null||taskType==null){
+                          if(selectedCourse==null){
+                            showBasicDialog(context, "Must select course!");
+                            return;
+                          } else if(taskName==null){
+                            showBasicDialog(context, "Task name cannot be empty!");
+                            return;
+                          } else if(dueDate==null){
+                            showBasicDialog(context, "Task must have due date!");
                             return;
                           }
+                          // if(selectedCourse==null||taskName==null||dueDate==null||taskType==null){
+                          //   return;
+                          // }
                           onConfirm(selectedCourse,taskName,dueDate,taskType);
                           Navigator.of(context).pop();
                         },
@@ -167,8 +179,8 @@ class TaskWidget extends StatelessWidget{
     }
 
     Widget taskCardMaker(int index, double cardWidth){
-      var borderColor = sortedTaskList[index]['taskType']=='hw' ? Colors.blueAccent : Colors.black;
-      var buttonColor = sortedTaskList[index]['taskType']=='hw' ? const Color(0xFF6200EE) : const Color(0xFF000000);
+      var borderColor = sortedTaskList[index]['taskType']=='hw' ? Provider.of<UserDB>(context).mainColor : Colors.black;
+      var buttonColor = sortedTaskList[index]['taskType']=='hw' ? Provider.of<UserDB>(context).secondaryColor : Colors.black;
       var hwData = sortedTaskList[index];
       var content = Container(
         child: Center(
@@ -206,7 +218,22 @@ class TaskWidget extends StatelessWidget{
                     ),
                     TextButton(
                         onPressed: (){
-                          Provider.of<UserDB>(context,listen: false).completeTask(hwData);
+                          UserDB userDB = Provider.of<
+                              UserDB>(
+                              context,
+                              listen: false);
+                          userDB.completeHomework(index);
+                          final snackBar = SnackBar(
+                            content: Text("Homework marked as complete"),
+                            action: SnackBarAction(
+                              label: "UNDO",
+                              onPressed: (){
+                                userDB.undoCompleteHomework();
+                              },
+                            ),
+                          );
+                          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
                         },
                         child: Text(timeDiff(index)>=0 ? 'MARK AS COMPLETE' : 'ARCHIVE', style: TextStyle(color: buttonColor),)
                     ),
@@ -282,20 +309,21 @@ class TaskWidget extends StatelessWidget{
     var content;
     if (Provider.of<UserDB>(context).courseOrder.isEmpty) {
       content = Text("No courses found. Add some in the Course Table tab!",style: TextStyle(fontSize: 24));
-    } else if (Provider.of<UserDB>(context).taskList.isEmpty) {
+    } else if (Provider.of<UserDB>(context).homeworkList.isEmpty) {
       content = Text("Click on the Plus button to add assignments!",style: TextStyle(fontSize: 24));
     } else {
       content = quadHome;
     }
 
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("Upcoming Tasks")),),
+      appBar: taskyAppBar(context, "Assignments & Exams"),
       drawer: NavigationDrawer(),
       body: Center(child: content),
       floatingActionButton: Provider.of<UserDB>(context).courseOrder.isEmpty ? null : FloatingActionButton(
+        backgroundColor: Provider.of<UserDB>(context, listen: false).mainColor,
         child: Icon(Icons.add),
         onPressed: (){
-          showHWDialog(null, null, null, "hw",(String cn, String tn, DateTime dt, String tt) => Provider.of<UserDB>(context,listen: false).addTask(cn, tn, dt, tt));
+          showHWDialog(null, null, null, "hw",(String cn, String tn, DateTime dt, String tt) => Provider.of<UserDB>(context,listen: false).addHomework(cn, tn, dt, tt));
         },
       ),
     );
