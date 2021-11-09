@@ -19,7 +19,7 @@ class ScreenTooSmallWidget extends StatelessWidget{
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text("Please expand it to use the Course Table",
+            child: Text("Please expand it or use a bigger screen",
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 24,

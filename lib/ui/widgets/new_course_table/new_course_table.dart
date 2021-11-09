@@ -4,8 +4,9 @@ import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/models/course_options.dart';
 import 'package:tasky/app/services/user_db.dart';
+import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
-import 'package:tasky/ui/widgets/new_course_table/screen_too_small.dart';
+import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 
 import 'no_courses.dart';
@@ -17,7 +18,7 @@ class NewCourseTableWidget extends StatefulWidget {
 
 class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
   Widget cardMaker(Widget content, double cardHeight,
-      {bool includeBorders = false}) {
+      {bool includeBorders = false, Color mainColor = Colors.blueAccent, Color secondaryColor = Colors.blue}) {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: cardHeight,
@@ -29,8 +30,8 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
             decoration: includeBorders
                 ? BoxDecoration(
                     border: Border(
-                        bottom: BorderSide(color: Colors.blueAccent, width: 5),
-                        top: BorderSide(color: Colors.blueAccent, width: 5)))
+                        bottom: BorderSide(color: mainColor, width: 5),
+                        top: BorderSide(color: mainColor, width: 5)))
                 : null,
           ),
           clipper: ShapeBorderClipper(
@@ -47,6 +48,8 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
   Widget build(BuildContext context) {
     List courseOrder = Provider.of<UserDB>(context).courseOrder;
     Map courseProgressMap = Provider.of<UserDB>(context).courseProgressMap;
+    Color mainColor = Provider.of<UserDB>(context).mainColor;
+    Color secondaryColor = Provider.of<UserDB>(context).secondaryColor;
 
     //courseProgressMap.forEach((key, value) { print(MapEntry(key, value)); });
 
@@ -58,7 +61,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
             (index) => index % 2 == 0
                 ? Container(
                     width: index==2 ? 0 : 5,
-                    color: Colors.blueAccent,
+                    color: mainColor,
                   )
                 : Expanded(
                     child: Container(
@@ -84,9 +87,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
     List<Widget> listContent = [];
     courseOrder.forEach((courseName) {
-      listContent.add(courseCard(courseName, courseProgressMap[courseName]));
+      listContent.add(courseCard(courseName, courseProgressMap[courseName],mainColor: mainColor));
     });
-    listContent.add(Text(MediaQuery.of(context).size.width.toString()));
+    //listContent.add(Text(MediaQuery.of(context).size.width.toString()));
 
     List<String> dialogOptions = [
       "Weekly Lecture Count:",
@@ -95,13 +98,11 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Center(child: Text(Strings.newCourseTableTitle)),
-      ),
+      appBar: taskyAppBar(context, "Course Table"),
       drawer: NavigationDrawer(),
       body: MediaQuery.of(context).size.width>=950 ? (courseOrder.isEmpty ? NoCoursesWidget() : Column(
         children: [
-          cardMaker(weekRow, 50, includeBorders: true),
+          cardMaker(weekRow, 50, includeBorders: true, mainColor: mainColor),
           Expanded(
             child: ListView(
               children: listContent,
@@ -111,7 +112,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       )) : ScreenTooSmallWidget(),
       floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(
         child: /*Provider.of<UserDB>(context).editMode ? Icon(Icons.check_rounded, size: 35.0,) :*/ Icon(Icons.edit),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: mainColor,
         onPressed: (){
           showDialog(
               context: context,
@@ -126,10 +127,10 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                     courseProgressMap.forEach((key, value) { totalWorkshops+= value["info"]["workshopCount"]; });
                     return AlertDialog(
                       title: Center(child: Text(
-                          (courseOrder.isNotEmpty ? courseOrder.length.toString() : "No") + " Courses" + (courseOrder.isNotEmpty ? " - " : "") +
-                              (totalLectures>0 ? totalLectures.toString() + " Lectures" : "") +
-                              (totalTutorials>0 ? (totalLectures>0 ? ", " : "") + totalTutorials.toString() + " Tutorials" : "") +
-                              (totalWorkshops>0 ? (totalLectures>0 || totalTutorials>0 ? ", " : "") + totalWorkshops.toString() + " Workshops" : "")
+                          (courseOrder.isNotEmpty ? courseOrder.length.toString() : "No") + " Course" + (courseOrder.length!=1 ? "s" : "") + (courseOrder.isNotEmpty ? " - " : "") +
+                              (totalLectures>0 ? totalLectures.toString() + (" Lecture" + (totalLectures!=1 ? "s" : "")) : "") +
+                              (totalTutorials>0 ? (totalLectures>0 ? ", " : "") + totalTutorials.toString() + (" Tutorial" + (totalTutorials!=1 ? "s" : "")) : "") +
+                              (totalWorkshops>0 ? (totalLectures>0 || totalTutorials>0 ? ", " : "") + totalWorkshops.toString() + (" Workshop" + (totalWorkshops!=1 ? "s" : "")) : "")
                       )),
                       content: Container(
                         width: MediaQuery.of(context).size.width/3,
@@ -377,10 +378,10 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                         decoration: BoxDecoration(
                                             border: Border(
                                                 left: BorderSide(
-                                                    color: Colors.blueAccent,
+                                                    color: mainColor,
                                                     width: 5),
                                                 right: BorderSide(
-                                                    color: Colors.blueAccent,
+                                                    color: mainColor,
                                                     width: 5)))
                                     ),
                                     clipper: ShapeBorderClipper(
@@ -567,7 +568,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     );
   }
 
-  Widget courseCard(String courseName, Map courseMap) {
+  Widget courseCard(String courseName, Map courseMap, {Color mainColor = Colors.blueAccent}) {
     int numRows = courseMap['data'].length;
     //List<String> names = ["Lecture #1"];
     VerticalDivider indexNeedsDivider(int index) =>
@@ -603,7 +604,8 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                     )),
         ),
         50.0*numRows,
-        includeBorders: true);
+        includeBorders: true,
+        mainColor: mainColor);
   }
 
   CourseOptions courseOptionsFromInfo(Map courseInfo){

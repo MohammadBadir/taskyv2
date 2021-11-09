@@ -4,30 +4,153 @@ import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
+import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
 
-import '../../../app/constants/strings.dart';
-import '../../../app/services/firebase_auth_service.dart';
-
-class HomeWidget extends StatelessWidget {
+class HomeWidget extends StatefulWidget {
   const HomeWidget({Key key}) : super(key: key);
+
+  @override
+  State<HomeWidget> createState() => _HomeWidgetState();
+}
+
+class _HomeWidgetState extends State<HomeWidget> {
+  @override
+  void initState(){
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      if(Provider.of<UserDB>(context, listen: false).firstTime){
+        showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext context) {
+              String taskName;
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
+                    title: Center(
+                      child: Text(
+                          "Welcome to Tasky! Please enter a username"
+                      ),
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize
+                          .min,
+                      crossAxisAlignment: CrossAxisAlignment
+                          .start,
+                      children: [
+                        Container(
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width / 4,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 0.0, 0.0),
+                            child: TextFormField(
+                              initialValue: Provider.of<UserDB>(context, listen: false).displayName,
+                              decoration: InputDecoration(
+                                  labelText: " Username",
+                                  hintText: "e.g. Adam"
+                              ),
+                              onChanged: (
+                                  String str) {
+                                taskName = str;
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            if (taskName == null || taskName=="") {
+                              showBasicDialog(context, "Username cannot be empty!");
+                              return;
+                            }
+                            Provider.of<
+                                UserDB>(
+                                context,
+                                listen: false).firstTime = false;
+                            Provider.of<
+                                UserDB>(
+                                context,
+                                listen: false)
+                                .changeUsername(
+                                taskName);
+                            Navigator.of(
+                                context)
+                                .pop();
+                          },
+                          child: Text("Confirm")
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     List pendingTaskList = Provider.of<UserDB>(context).pendingTaskList;
     double screenWidth = MediaQuery.of(context).size.width;
     double taskWidth = screenWidth > 2000 ? screenWidth/2 : (screenWidth > 1000 ? 1000 : screenWidth);
+    bool noTasks = pendingTaskList.isEmpty;
 
     return Scaffold(
       appBar: taskyAppBar(context, "Home"),
       drawer: NavigationDrawer(),
-      body: Center(
+      body: MediaQuery.of(context).size.width<950 ? ScreenTooSmallWidget() : Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
+          children: noTasks ? [
+          Expanded(
+            child: Center(
+              child: Container(
+                child: Text("Welcome back, "+Provider.of<UserDB>(context).displayName,
+                  style: TextStyle(
+                    fontSize: 50,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+            Expanded(
+              flex: 4,
+              child: Center(
+                child: Container(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("You have no pending tasks",
+                        style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Provider.of<UserDB>(context, listen: false).secondaryColor
+                        ),
+                      ),
+                      Container(height: 40,),
+                      Text("Add some by clicking the plus button",
+                        style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Provider.of<UserDB>(context, listen: false).secondaryColor
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            )
+          ] : [
             Expanded(
               child: Center(
                 child: Container(
-                  child: Text("Welcome back, "+Provider.of<UserDB>(context).displayName,
+                  child: Text(Provider.of<UserDB>(context, listen: false).firstTime ? "Welcome!" : "Welcome back, "+Provider.of<UserDB>(context).displayName,
                     style: TextStyle(
                       fontSize: 50,
                       fontWeight: FontWeight.bold,
@@ -43,7 +166,7 @@ class HomeWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue
+                      color: Provider.of<UserDB>(context, listen: false).secondaryColor
                     ),
                   ),
                 ),
@@ -74,7 +197,7 @@ class HomeWidget extends StatelessWidget {
                                           .symmetric(horizontal: 8.0),
                                       child: Text(pendingTaskList[index],
                                         style: TextStyle(
-                                            fontSize: 36,
+                                            fontSize: 32,
                                             fontWeight: FontWeight
                                                 .bold),),
                                     ),
@@ -200,10 +323,10 @@ class HomeWidget extends StatelessWidget {
                               decoration: BoxDecoration(
                                   border: Border(
                                       left: BorderSide(
-                                          color: Colors.blueAccent,
+                                          color: Provider.of<UserDB>(context, listen: false).mainColor,
                                           width: 5),
                                       right: BorderSide(
-                                          color: Colors.blueAccent,
+                                          color: Provider.of<UserDB>(context, listen: false).mainColor,
                                           width: 5)))
                           ),
                           clipper: ShapeBorderClipper(
@@ -222,7 +345,8 @@ class HomeWidget extends StatelessWidget {
           ]
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(
+        backgroundColor: Provider.of<UserDB>(context, listen: false).mainColor,
         child: Icon(Icons.add),
         onPressed: () {
           showDialog(

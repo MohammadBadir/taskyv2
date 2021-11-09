@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:tasky/app/constants/pages.dart';
 import 'package:tasky/app/constants/strings.dart';
+import 'package:tasky/app/constants/themes.dart';
 import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
@@ -21,12 +23,17 @@ class UserDB extends ChangeNotifier {
   //Map pendingTaskMapBySemester;
   Map pendingTaskListBySemester;
   List pendingTaskList;
-  String deletedTask = "Aspartame";
-  int deletedTaskIndex = 0;
+  String deletedTask;
+  int deletedTaskIndex;
 
   List homeworkList;
   Map deletedHomework;
   int deletedHomeworkIndex;
+
+  int selectedTheme;
+  int defaultPage;
+  Color mainColor;
+  Color secondaryColor;
 
   DocumentReference userDocument;
   bool firstTime;
@@ -45,7 +52,7 @@ class UserDB extends ChangeNotifier {
 
       courseOrder = [];
       courseProgressMap = {};
-      pendingTaskList = ["Some Example Task"];
+      pendingTaskList = ["Example Task"];
 
       semesterOrder = ["Winter 2020-2021"];
       currentSemester = 0;
@@ -56,7 +63,10 @@ class UserDB extends ChangeNotifier {
 
       homeworkList = [];
 
-      displayName = "TaskyTester";
+      selectedTheme=0;
+      defaultPage=0;
+
+      displayName = "User";
 
       await userDocument.set({
         'courseOrderBySemester' : courseOrderBySemester,
@@ -65,6 +75,8 @@ class UserDB extends ChangeNotifier {
         'homeworkList' : homeworkList,
         'semesterOrder' : semesterOrder,
         'currentSemester' : currentSemester,
+        'theme' : selectedTheme,
+        'defaultPage' : defaultPage,
         'displayName' : displayName
       });
     } else {
@@ -86,14 +98,42 @@ class UserDB extends ChangeNotifier {
 
       homeworkList = userData['homeworkList'];
 
+      selectedTheme = userData['theme'];
+      defaultPage = userData['defaultPage'];
+
       displayName = userData['displayName'];
     }
+
+    mainColor = Themes.colorPalletes[selectedTheme]['main'];
+    secondaryColor = Themes.colorPalletes[selectedTheme]['second'];
 
     userSnapshot = await userDocument.get();
     //Map<String, dynamic> userData = userSnapshot.data();
 
     await userDocument.update({'zMiscData' : {'lastLogin' : DateTime.now().toString(), 'currentVer' : Strings.version}});
     print("Data Fetched");
+  }
+
+  changeTheme(int newTheme){
+    assert(newTheme>=0 && newTheme<Themes.colorPalletes.length);
+    selectedTheme = newTheme;
+    mainColor = Themes.colorPalletes[selectedTheme]['main'];
+    secondaryColor = Themes.colorPalletes[selectedTheme]['second'];
+    userDocument.update({'theme' : selectedTheme});
+    notifyListeners();
+  }
+
+  changeDefaultPage(int newPage){
+    assert(newPage>=0 && newPage<Pages.pageNames.length);
+    defaultPage = newPage;
+    userDocument.update({'defaultPage' : defaultPage});
+    notifyListeners();
+  }
+
+  changeUsername(String newName){
+    displayName = newName;
+    userDocument.update({'displayName' : displayName});
+    notifyListeners();
   }
 
   // updateProgressMap(Map newMap){
@@ -200,6 +240,7 @@ class UserDB extends ChangeNotifier {
 
   editCourse(String courseName, String newCourseName, CourseOptions newCourseOptions){
     bool changesMade = false;
+    bool nameChanged = false;
     CourseOptions courseOptionsFromInfo(Map courseInfo){
       CourseOptions options = CourseOptions();
       options.lectureCount = courseInfo['lectureCount'];
@@ -251,14 +292,27 @@ class UserDB extends ChangeNotifier {
     courseMap["info"] = newInfoMap;
     if(newCourseName!=courseName){
       changesMade = true;
+      nameChanged = true;
       courseProgressMap[newCourseName] = courseMap;
       courseProgressMap.remove(courseName);
+      List newHWList = [];
+      homeworkList.forEach((element) {
+        if(element['courseName']!=courseName){
+          newHWList.add(element);
+        } else {
+          newHWList.add({'courseName':newCourseName, 'hwName':element['hwName'], 'due':element['due'], 'taskType':element['taskType']});
+        }
+      });
+      homeworkList=newHWList;
     }
     int index = courseOrder.indexOf(courseName);
     courseOrder.removeAt(index);
     courseOrder.insert(index, newCourseName);
     if(changesMade){
       updateCourses();
+      if(nameChanged){
+        userDocument.update({'homeworkList' : homeworkList});
+      }
     }
   }
 
@@ -275,7 +329,9 @@ class UserDB extends ChangeNotifier {
     String courseName = courseOrder[index];
     courseOrder.removeAt(index);
     courseProgressMap.remove(courseName);
+    homeworkList.removeWhere((element) => element['courseName']==courseName);
     updateCourses();
+    userDocument.update({'homeworkList' : homeworkList});
   }
 
   // addCourseGrade(String courseName, double points, double grade) async{
@@ -285,9 +341,13 @@ class UserDB extends ChangeNotifier {
   // }
 
   addHomework(String courseName, String hwName, DateTime dueDate, String taskType){
+    // if(homeworkList.any((element) => element['courseName']==courseName && element['hwName']==hwName && element['taskType']==taskType)){
+    //   return false;
+    // }
     homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
     userDocument.update({'homeworkList' : homeworkList});
     notifyListeners();
+    //TODO: don't allow duplicates...
   }
 
   completeHomework(int index){

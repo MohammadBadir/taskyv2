@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/services/user_db.dart';
+import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 
 class TaskWidget extends StatelessWidget{
@@ -178,8 +179,8 @@ class TaskWidget extends StatelessWidget{
     }
 
     Widget taskCardMaker(int index, double cardWidth){
-      var borderColor = sortedTaskList[index]['taskType']=='hw' ? Colors.blueAccent : Colors.black;
-      var buttonColor = sortedTaskList[index]['taskType']=='hw' ? const Color(0xFF6200EE) : const Color(0xFF000000);
+      var borderColor = sortedTaskList[index]['taskType']=='hw' ? Provider.of<UserDB>(context).mainColor : Colors.black;
+      var buttonColor = sortedTaskList[index]['taskType']=='hw' ? Provider.of<UserDB>(context).secondaryColor : Colors.black;
       var hwData = sortedTaskList[index];
       var content = Container(
         child: Center(
@@ -315,10 +316,11 @@ class TaskWidget extends StatelessWidget{
     }
 
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("Upcoming Tasks")),),
+      appBar: taskyAppBar(context, "Assignments & Exams"),
       drawer: NavigationDrawer(),
       body: Center(child: content),
       floatingActionButton: Provider.of<UserDB>(context).courseOrder.isEmpty ? null : FloatingActionButton(
+        backgroundColor: Provider.of<UserDB>(context, listen: false).mainColor,
         child: Icon(Icons.add),
         onPressed: (){
           showHWDialog(null, null, null, "hw",(String cn, String tn, DateTime dt, String tt) => Provider.of<UserDB>(context,listen: false).addHomework(cn, tn, dt, tt));
