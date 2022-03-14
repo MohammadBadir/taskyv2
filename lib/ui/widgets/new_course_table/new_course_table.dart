@@ -8,6 +8,8 @@ import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:tasky/ui/widgets/new_course_table/widgets/card_wrapper.dart';
+import 'package:tasky/ui/widgets/new_course_table/widgets/week_bar.dart';
 
 import 'no_courses.dart';
 
@@ -46,50 +48,24 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
   @override
   Widget build(BuildContext context) {
-    List courseOrder = Provider.of<UserDB>(context).courseOrder;
-    Map courseProgressMap = Provider.of<UserDB>(context).courseProgressMap;
-    Color mainColor = Provider.of<UserDB>(context).mainColor;
-    Color secondaryColor = Provider.of<UserDB>(context).secondaryColor;
+    UserDB userDB = Provider.of<UserDB>(context);
+
+    List courseOrder = userDB.courseOrder;
+    Map courseProgressMap = userDB.courseProgressMap;
+    Color mainColor = userDB.mainColor;
+    Color secondaryColor = userDB.secondaryColor;
 
     //courseProgressMap.forEach((key, value) { print(MapEntry(key, value)); });
 
-    Widget weekRow = Container(
-      color: Colors.green,
-      child: Row(
-        children: List.generate(
-            31,
-            (index) => index % 2 == 0
-                ? Container(
-                    width: index==2 ? 0 : 5,
-                    color: mainColor,
-                  )
-                : Expanded(
-                    child: Container(
-                      child: Center(
-                          child: index == 3
-                              ? null
-                              : Text(
-                                  index == 1
-                                      ? "Course"
-                                      : (index ~/ 2 - 1).toString(),
-                                  style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold),
-                                )),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(3),
-                          color: Colors.white),
-                    ),
-                    flex: index == 1 ? 9 : (index == 3 ? 0 : 2),
-                  )),
-      ),
-    );
-
-    List<Widget> listContent = [];
+    List<Widget> courseCardList = [];
     courseOrder.forEach((courseName) {
-      listContent.add(courseCard(courseName, courseProgressMap[courseName],mainColor: mainColor));
+      courseCardList.add(createCourseCard(courseName, courseProgressMap[courseName],mainColor: mainColor));
     });
-    //listContent.add(Text(MediaQuery.of(context).size.width.toString()));
+    //courseCardList.add(Text(MediaQuery.of(context).size.width.toString()));
+
+    ListView courseCardListView = ListView(
+      children: courseCardList,
+    );
 
     List<String> dialogOptions = [
       "Weekly Lecture Count:",
@@ -102,11 +78,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       drawer: NavigationDrawer(),
       body: MediaQuery.of(context).size.width>=950 ? (courseOrder.isEmpty ? NoCoursesWidget() : Column(
         children: [
-          cardMaker(weekRow, 50, includeBorders: true, mainColor: mainColor),
+          WeekBar(),
           Expanded(
-            child: ListView(
-              children: listContent,
-            ),
+            child: courseCardListView,
           ),
         ],
       )) : ScreenTooSmallWidget(),
@@ -568,11 +542,11 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     );
   }
 
-  Widget courseCard(String courseName, Map courseMap, {Color mainColor = Colors.blueAccent}) {
-    int numRows = courseMap['data'].length;
+  Widget createCourseCard(String courseName, Map courseMap, {Color mainColor = Colors.blueAccent}) {
+    int numOfRows = courseMap['data'].length;
     //List<String> names = ["Lecture #1"];
     VerticalDivider indexNeedsDivider(int index) =>
-        index == 0 || index == 2 || index == 30 ? null : VerticalDivider(color: Colors.black38,);
+        index == 0 || index == 2 || index == 30 ? null : VerticalDivider(color: Colors.black38);
     int flexByIndex(int index) => index == 1 ? 6 : (index == 3 ? 3 : 2);
 
     return cardMaker(
@@ -603,7 +577,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                       flex: flexByIndex(index),
                     )),
         ),
-        50.0*numRows,
+        50.0*numOfRows,
         includeBorders: true,
         mainColor: mainColor);
   }
