@@ -12,6 +12,12 @@ import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 
 class TaskWidget extends StatelessWidget{
+  int daysBetween(DateTime from, DateTime to) {
+    from = DateTime(from.year, from.month, from.day);
+    to = DateTime(to.year, to.month, to.day);
+    return (to.difference(from).inHours / 24).round();
+  }
+
   @override
   Widget build(BuildContext context) {
     //Auxiliary declarations
@@ -19,7 +25,7 @@ class TaskWidget extends StatelessWidget{
     sortedTaskList.sort((var a, var b) => a['due'].compareTo(b['due']));
     var courseList = Provider.of<UserDB>(context).courseOrder;
     var currentTime = DateTime.now();
-    int timeDiff(int index) => DateTime.fromMillisecondsSinceEpoch(sortedTaskList[index]['due']).difference(DateTime(currentTime.year,currentTime.month,currentTime.day)).inDays;
+    int timeDiff(int index) => daysBetween(currentTime, DateTime.fromMillisecondsSinceEpoch(sortedTaskList[index]['due']));
     var remainingTimeBadge = (int index){
       String text;
       if(timeDiff(index)<0){
