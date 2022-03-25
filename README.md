@@ -2,11 +2,10 @@
 
 Tasky is a webapp designed to help you keep track of your course schedules and assignments.
 
-# Release 0.4.1
+# Release 0.4.5
 
-- Added homepage
-- Redesigned Course table
-- QOL improvements: Themes, Undo option
+- Fixed remaining days bug
+- Added Semester Change Option
 
 ## Getting Started with Source Code
 
