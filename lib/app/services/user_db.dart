@@ -26,6 +26,7 @@ class UserDB extends ChangeNotifier {
   String deletedTask;
   int deletedTaskIndex;
 
+  Map homeworkListBySemester;
   List homeworkList;
   Map deletedHomework;
   int deletedHomeworkIndex;
@@ -54,14 +55,14 @@ class UserDB extends ChangeNotifier {
       courseProgressMap = {};
       pendingTaskList = ["Example Task"];
 
-      semesterOrder = ["Winter 2020-2021"];
+      semesterOrder = ["Spring 2022"];
       currentSemester = 0;
+      homeworkList = [];
 
       progressMapsBySemester = {semesterOrder[currentSemester] : courseProgressMap};
       courseOrderBySemester = {semesterOrder[currentSemester] : courseOrder};
       pendingTaskListBySemester = {semesterOrder[currentSemester] : pendingTaskList};
-
-      homeworkList = [];
+      homeworkListBySemester = {semesterOrder[currentSemester] : homeworkList};
 
       selectedTheme=0;
       defaultPage=0;
@@ -72,7 +73,7 @@ class UserDB extends ChangeNotifier {
         'courseOrderBySemester' : courseOrderBySemester,
         'progressMapsBySemester' : progressMapsBySemester,
         'pendingTaskListBySemester' : pendingTaskListBySemester,
-        'homeworkList' : homeworkList,
+        'homeworkListBySemester' : homeworkListBySemester,
         'semesterOrder' : semesterOrder,
         'currentSemester' : currentSemester,
         'theme' : selectedTheme,
@@ -88,6 +89,14 @@ class UserDB extends ChangeNotifier {
       courseOrderBySemester = userData['courseOrderBySemester'];
       progressMapsBySemester = userData['progressMapsBySemester'];
       pendingTaskListBySemester = userData['pendingTaskListBySemester'];
+      homeworkListBySemester = userData['homeworkListBySemester'];
+
+      //backwards compatibility
+      if(homeworkListBySemester==null){
+        homeworkList = userData['homeworkList'];
+        homeworkListBySemester = {'Winter 2020-2021' : homeworkList};
+        userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
+      }
 
       semesterOrder = userData['semesterOrder'];
       currentSemester = userData['currentSemester'];
@@ -95,8 +104,7 @@ class UserDB extends ChangeNotifier {
       courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
       courseProgressMap = progressMapsBySemester[semesterOrder[currentSemester]];
       pendingTaskList = pendingTaskListBySemester[semesterOrder[currentSemester]];
-
-      homeworkList = userData['homeworkList'];
+      homeworkList = homeworkListBySemester[semesterOrder[currentSemester]];
 
       selectedTheme = userData['theme'];
       defaultPage = userData['defaultPage'];
@@ -153,13 +161,6 @@ class UserDB extends ChangeNotifier {
   //   assert(!semesterOrder.contains(title));
   //
   // }
-
-  changeSemester(int targetSemester){
-    if(currentSemester!=targetSemester){
-      currentSemester = targetSemester;
-      notifyListeners();
-    }
-  }
 
   addWord(String word) async{
     assert(FirebaseAuth.instance.currentUser != null);
@@ -311,7 +312,7 @@ class UserDB extends ChangeNotifier {
     if(changesMade){
       updateCourses();
       if(nameChanged){
-        userDocument.update({'homeworkList' : homeworkList});
+        userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
       }
     }
   }
@@ -331,7 +332,7 @@ class UserDB extends ChangeNotifier {
     courseProgressMap.remove(courseName);
     homeworkList.removeWhere((element) => element['courseName']==courseName);
     updateCourses();
-    userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
   }
 
   // addCourseGrade(String courseName, double points, double grade) async{
@@ -345,7 +346,7 @@ class UserDB extends ChangeNotifier {
     //   return false;
     // }
     homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
-    userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
     notifyListeners();
     //TODO: don't allow duplicates...
   }
@@ -354,13 +355,13 @@ class UserDB extends ChangeNotifier {
     deletedHomeworkIndex = index;
     deletedHomework = homeworkList[index];
     homeworkList.removeAt(index);
-    userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
     notifyListeners();
   }
 
   undoCompleteHomework(){
     homeworkList.insert(deletedHomeworkIndex, deletedHomework);
-    userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
     notifyListeners();
   }
 
@@ -383,11 +384,55 @@ class UserDB extends ChangeNotifier {
   editTask(Map oldHW, String courseName, String hwName, DateTime dueDate, String taskType){
     homeworkList.remove(oldHW);
     homeworkList.add({'courseName' : courseName,'hwName':hwName,'due' : dueDate.millisecondsSinceEpoch, 'taskType' : taskType});
-    userDocument.update({'homeworkList' : homeworkList});
+    userDocument.update({'homeworkListBySemester' : homeworkListBySemester});
     notifyListeners();
   }
 
   int numOfCourseRows(){
     return courseProgressMap.length;
+  }
+
+  addSemester(String semesterName){
+    semesterOrder.add(semesterName);
+    progressMapsBySemester[semesterName] = {};
+    courseOrderBySemester[semesterName] = [];
+    homeworkListBySemester[semesterName] = [];
+    userDocument.update({'semesterOrder' : semesterOrder, 'courseOrderBySemester' : courseOrderBySemester, 'progressMapsBySemester' : progressMapsBySemester, 'homeworkListBySemester' : homeworkListBySemester});
+    notifyListeners();
+  }
+
+  changeSemester(int targetSemester){
+    if(currentSemester!=targetSemester){
+      currentSemester = targetSemester;
+      courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
+      courseProgressMap = progressMapsBySemester[semesterOrder[currentSemester]];
+      homeworkList = homeworkListBySemester[semesterOrder[currentSemester]];
+      userDocument.update({'currentSemester' : currentSemester});
+      notifyListeners();
+    }
+  }
+
+  renameSemester(int index, String newName){
+    String oldName = semesterOrder[index];
+    semesterOrder.removeAt(index);
+    semesterOrder.insert(index, newName);
+    progressMapsBySemester[newName] = progressMapsBySemester[oldName];
+    progressMapsBySemester.remove(oldName);
+    courseOrderBySemester[newName] = courseOrderBySemester[oldName];
+    courseOrderBySemester.remove(oldName);
+    homeworkListBySemester[newName] = homeworkListBySemester[oldName];
+    homeworkListBySemester.remove(oldName);
+    userDocument.update({'semesterOrder' : semesterOrder, 'courseOrderBySemester' : courseOrderBySemester, 'progressMapsBySemester' : progressMapsBySemester, 'homeworkListBySemester' : homeworkListBySemester});
+    notifyListeners();
+  }
+
+  deleteSemester(int index){
+    String name = semesterOrder[index];
+    semesterOrder.removeAt(index);
+    progressMapsBySemester.remove(name);
+    courseOrderBySemester.remove(name);
+    homeworkListBySemester.remove(name);
+    userDocument.update({'semesterOrder' : semesterOrder, 'courseOrderBySemester' : courseOrderBySemester, 'progressMapsBySemester' : progressMapsBySemester, 'homeworkListBySemester' : homeworkListBySemester});
+    notifyListeners();
   }
 }
