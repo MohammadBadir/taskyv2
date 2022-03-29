@@ -451,7 +451,7 @@ Widget taskyAppBar(context, String title){
                                                                       TextButton(
                                                                           onPressed: () {
                                                                             if (semesterName == null || semesterName=="") {
-                                                                              showBasicDialog(context, "Username cannot be empty!");
+                                                                              showBasicDialog(context, "Semester Name cannot be empty!");
                                                                               return;
                                                                             }
                                                                             Provider.of<

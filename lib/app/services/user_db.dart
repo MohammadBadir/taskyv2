@@ -61,7 +61,7 @@ class UserDB extends ChangeNotifier {
 
       progressMapsBySemester = {semesterOrder[currentSemester] : courseProgressMap};
       courseOrderBySemester = {semesterOrder[currentSemester] : courseOrder};
-      pendingTaskListBySemester = {semesterOrder[currentSemester] : pendingTaskList};
+      pendingTaskListBySemester = {'Winter 2020-2021' : pendingTaskList};
       homeworkListBySemester = {semesterOrder[currentSemester] : homeworkList};
 
       selectedTheme=0;
@@ -103,7 +103,7 @@ class UserDB extends ChangeNotifier {
 
       courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
       courseProgressMap = progressMapsBySemester[semesterOrder[currentSemester]];
-      pendingTaskList = pendingTaskListBySemester[semesterOrder[currentSemester]];
+      pendingTaskList = pendingTaskListBySemester['Winter 2020-2021'];
       homeworkList = homeworkListBySemester[semesterOrder[currentSemester]];
 
       selectedTheme = userData['theme'];
