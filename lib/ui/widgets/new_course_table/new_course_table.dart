@@ -9,6 +9,7 @@ import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/card_wrapper.dart';
+import 'package:tasky/ui/widgets/new_course_table/widgets/course_card.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/week_bar.dart';
 
 import 'no_courses.dart';
@@ -19,32 +20,6 @@ class NewCourseTableWidget extends StatefulWidget {
 }
 
 class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
-  Widget cardMaker(Widget content, double cardHeight,
-      {bool includeBorders = false, Color mainColor = Colors.blueAccent, Color secondaryColor = Colors.blue}) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: cardHeight,
-      child: Card(
-        color: Colors.white,
-        child: ClipPath(
-          child: Container(
-            child: content,
-            decoration: includeBorders
-                ? BoxDecoration(
-                    border: Border(
-                        bottom: BorderSide(color: mainColor, width: 5),
-                        top: BorderSide(color: mainColor, width: 5)))
-                : null,
-          ),
-          clipper: ShapeBorderClipper(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(3))),
-        ),
-      ),
-    );
-  }
-
-  T cast<T>(x) => x is T ? x : null;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +34,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
     List<Widget> courseCardList = [];
     courseOrder.forEach((courseName) {
-      courseCardList.add(createCourseCard(courseName, courseProgressMap[courseName],mainColor: mainColor));
+      courseCardList.add(CourseCard(courseName, courseProgressMap[courseName], mainColor: mainColor));
     });
     //courseCardList.add(Text(MediaQuery.of(context).size.width.toString()));
 
@@ -542,46 +517,6 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     );
   }
 
-  Widget createCourseCard(String courseName, Map courseMap, {Color mainColor = Colors.blueAccent}) {
-    int numOfRows = courseMap['data'].length;
-    //List<String> names = ["Lecture #1"];
-    VerticalDivider indexNeedsDivider(int index) =>
-        index == 0 || index == 2 || index == 30 ? null : VerticalDivider(color: Colors.black38);
-    int flexByIndex(int index) => index == 1 ? 6 : (index == 3 ? 3 : 2);
-
-    return cardMaker(
-        Row(
-          children: List.generate(
-              31,
-              (index) => index.isEven
-                  ? Container(
-                      width: index==2 ? 0 : 5,
-                      color: Colors.white,
-                      child: indexNeedsDivider(index))
-                  : Expanded(
-                      child: Container(
-                        child: Center(
-                            child: index == 1
-                                ? Text(
-                                    courseName,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold),
-                                  )
-                                : courseColumn(index, courseMap, courseName)),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                      flex: flexByIndex(index),
-                    )),
-        ),
-        50.0*numOfRows,
-        includeBorders: true,
-        mainColor: mainColor);
-  }
-
   CourseOptions courseOptionsFromInfo(Map courseInfo){
     CourseOptions options = CourseOptions();
     options.lectureCount = courseInfo['lectureCount'];
@@ -591,97 +526,5 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       options.isSingleton = true;
     }
     return options;
-  }
-
-  Column courseColumn(int index, Map courseMap, String courseName) {
-    int numWeeks = 13;
-    CourseOptions courseOptions = courseOptionsFromInfo(courseMap['info']);
-    Map courseData = courseMap['data'];
-    int numRows = courseData.length;
-
-    Widget press({String label, String fieldName, int count = 1}) {
-      Widget iconToPut;
-      if(courseData[fieldName].contains((index-3)~/2)){
-        iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded));
-      } else if(count==2 && courseData[fieldName].contains((index-3)~/2 + numWeeks)){
-        iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.done_all_rounded));
-      } else if(courseData[fieldName].contains(-(index-3)~/2)){
-        iconToPut = FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,));
-      }
-
-      return Expanded(
-        child: InkWell(
-            onTap: index == 3 ? null : () {
-              if(courseData[fieldName].contains((index-3)~/2)){
-                courseData[fieldName].remove((index-3)~/2);
-                if(count==2) courseData[fieldName].add((index-3)~/2 + numWeeks);
-              } else if(courseData[fieldName].contains((index-3)~/2 + numWeeks)){
-                courseData[fieldName].remove((index-3)~/2 + numWeeks);
-              } else if(courseData[fieldName].contains(-(index-3)~/2)){
-                courseData[fieldName].remove(-(index-3)~/2);
-                courseData[fieldName].add((index-3)~/2);
-              } else {
-                courseData[fieldName].add((index-3)~/2);
-              }
-              Provider.of<UserDB>(context, listen: false).updateCourses();
-            },
-            onLongPress: index == 3 ? null : (){
-              if(!courseData[fieldName].contains(-(index-3)~/2)){
-                courseData[fieldName].remove((index-3)~/2);
-                courseData[fieldName].remove((index-3)~/2 + numWeeks);
-                courseData[fieldName].add(-(index-3)~/2);
-              } else {
-                courseData[fieldName].remove(-(index-3)~/2);
-              }
-              Provider.of<UserDB>(context, listen: false).updateCourses();
-            },
-            child: Container(
-              constraints: BoxConstraints.expand(),
-              child: index == 3
-                  ? Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  ))
-                  :
-              iconToPut,
-            )),
-      );
-    }
-
-    Widget divv = Container(
-        height: 5,
-        child: Divider(color: Colors.black38,),
-      );
-
-    //List<Widget> widgetList = List.generate(numRows*2-1, (index) => index%2==0 ? press : divv);
-    List<Widget> widgetList = [];
-    if(courseOptions.isSingleton){
-      widgetList.add(press(label: "Class", fieldName: Strings.singleton));
-    } else {
-      if(courseOptions.lectureCount>0){
-        String plural = courseOptions.lectureCount>1 ? "s" : "";
-        widgetList.add(press(label: Strings.lecture + plural, fieldName: Strings.lecture, count: courseOptions.lectureCount));
-        widgetList.add(divv);
-      }
-      if(courseOptions.tutorialCount>0){
-        String plural = courseOptions.tutorialCount>1 ? "s" : "";
-        widgetList.add(press(label: Strings.tutorial + plural, fieldName: Strings.tutorial, count: courseOptions.tutorialCount));
-        widgetList.add(divv);
-      }
-      if(courseOptions.workShopCount>0){
-        String plural = courseOptions.workShopCount>1 ? "s" : "";
-        widgetList.add(press(label: Strings.workshop + plural, fieldName: Strings.workshop, count: courseOptions.workShopCount));
-        widgetList.add(divv);
-      }
-      widgetList.removeLast();
-    }
-
-    return Column(
-        children: widgetList
-    );
   }
 }

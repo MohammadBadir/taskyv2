@@ -11,6 +11,7 @@ class CardWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     BoxDecoration borders = null;
+
     if(includeBorders){
       borders = BoxDecoration(
           border: Border(
