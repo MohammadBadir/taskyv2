@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tasky/ui/widgets/course_page/course_page.dart';
 import '../../../../app/constants/strings.dart';
 import '../../../../app/models/course_options.dart';
 import '../../../../app/services/user_db.dart';
@@ -137,13 +138,25 @@ class CourseCard extends StatelessWidget {
                 child: Container(
                   child: Center(
                       child: index == 1
-                          ? Text(
+                          ? InkWell(
+                        onTap: (){
+                          //temporary
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) {
+                                return CoursePage();
+                              },
+                            ),
+                          );
+                        },
+                            child: Text(
                         courseName,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold),
-                      )
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold),
+                      ),
+                          )
                           : courseColumn(index, courseMap, courseName)),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(3),

@@ -15,12 +15,12 @@ class CoursePage extends StatelessWidget {
     Map courseProgressMap = userDB.courseProgressMap;
     Color mainColor = userDB.mainColor;
 
-    String courseName = "example";
+    String courseName = "banana";
 
     var courseCard = CourseCard(courseName, courseProgressMap[courseName], mainColor: mainColor);
 
     return Scaffold(
-      appBar: taskyAppBar(context, courseName),
+      appBar: AppBar(title: Center(child: Text(courseName))),
       drawer: NavigationDrawer(),
       body: Column(
         children: [
@@ -28,6 +28,6 @@ class CoursePage extends StatelessWidget {
           courseCard
         ],
       ),
-    )
+    );
   }
 }
