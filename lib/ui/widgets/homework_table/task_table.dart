@@ -48,6 +48,8 @@ class TaskWidget extends StatelessWidget{
     };
 
     showHWDialog(String initCourseName, DateTime initDueDate, String initTaskName, String initTaskType, Null Function(String, String, DateTime, String) onConfirm){
+      var dropDownCourseList = List.from(courseList);
+      dropDownCourseList.add("Other Tasks");
       showDialog(
           context: context,
           builder: (BuildContext context){
@@ -63,19 +65,16 @@ class TaskWidget extends StatelessWidget{
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(8.0,),
-                        onTap: (){},
-                        child: DropdownButton(
-                          value: selectedCourse,
-                          items: courseList.map((var x) => DropdownMenuItem(child: Text(x),value: x,)).toList(),
-                          hint: Text("Choose Course"),
-                          onChanged: (var x){
-                            setState((){
-                              selectedCourse = x;
-                            });
-                          },
-                        ),
+                      DropdownButton(
+                        focusColor: Colors.transparent,
+                        value: selectedCourse,
+                        items: dropDownCourseList.map((var x) => DropdownMenuItem(child: Text(x),value: x,)).toList(),
+                        hint: Text("Choose Course"),
+                        onChanged: (var x){
+                          setState((){
+                            selectedCourse = x;
+                          });
+                        },
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
@@ -93,7 +92,7 @@ class TaskWidget extends StatelessWidget{
                       InkWell(
                         borderRadius: BorderRadius.circular(8.0,),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
                           child: dueDate==null ? Text("Choose Due Date", style: TextStyle(color: Colors.lightBlue)) : Text("Due on:   " + DateFormat('MMM d, y').format(dueDate)),
                         ),
                         onTap: () async{
