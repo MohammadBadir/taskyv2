@@ -10,6 +10,7 @@ import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/card_wrapper.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/course_card.dart';
+import 'package:tasky/ui/widgets/new_course_table/widgets/table_buttons.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/week_bar.dart';
 
 import 'no_courses.dart';
@@ -37,7 +38,6 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
       courseCardList.add(CourseCard(courseName, courseProgressMap[courseName], mainColor: mainColor));
     });
     //courseCardList.add(Text(MediaQuery.of(context).size.width.toString()));
-
     ListView courseCardListView = ListView(
       children: courseCardList,
     );
@@ -57,12 +57,15 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
           Expanded(
             child: courseCardListView,
           ),
+          TableButtons()
         ],
       )) : ScreenTooSmallWidget(),
       floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(
         child: /*Provider.of<UserDB>(context).editMode ? Icon(Icons.check_rounded, size: 35.0,) :*/ Icon(Icons.edit),
         backgroundColor: mainColor,
         onPressed: (){
+          // Provider.of<UserDB>(context, listen: false).standardUpdateAllCourses();
+          // return;
           showDialog(
               context: context,
               builder: (BuildContext context){
