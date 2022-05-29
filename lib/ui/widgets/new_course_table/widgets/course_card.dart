@@ -33,40 +33,23 @@ class CourseCard extends StatelessWidget {
       int numRows = courseData.length;
 
       Widget press({String label, String fieldName, int count = 1}) {
+        //TODO: Make this into an organized class. At the moment it's very hard to read.
         Widget iconToPut;
         if(courseData[fieldName].contains((index-3)~/2)){
           iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.check_rounded));
         } else if(count==2 && courseData[fieldName].contains((index-3)~/2 + numWeeks)){
           iconToPut = FittedBox(fit: BoxFit.fitHeight, child: Icon(Icons.done_all_rounded));
         } else if(courseData[fieldName].contains(-(index-3)~/2)){
-          iconToPut = FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle,color: Colors.grey,));
+          iconToPut = FittedBox(fit: BoxFit.scaleDown, child: Icon(Icons.circle, color: Colors.grey,));
         }
 
         return Expanded(
           child: InkWell(
               onTap: index == 3 ? null : () {
-                if(courseData[fieldName].contains((index-3)~/2)){
-                  courseData[fieldName].remove((index-3)~/2);
-                  if(count==2) courseData[fieldName].add((index-3)~/2 + numWeeks);
-                } else if(courseData[fieldName].contains((index-3)~/2 + numWeeks)){
-                  courseData[fieldName].remove((index-3)~/2 + numWeeks);
-                } else if(courseData[fieldName].contains(-(index-3)~/2)){
-                  courseData[fieldName].remove(-(index-3)~/2);
-                  courseData[fieldName].add((index-3)~/2);
-                } else {
-                  courseData[fieldName].add((index-3)~/2);
-                }
-                Provider.of<UserDB>(context, listen: false).updateCourses();
+                Provider.of<UserDB>(context, listen: false).standardUpdateCourseProgress(courseData, fieldName, numWeeks, count, index);
               },
               onLongPress: index == 3 ? null : (){
-                if(!courseData[fieldName].contains(-(index-3)~/2)){
-                  courseData[fieldName].remove((index-3)~/2);
-                  courseData[fieldName].remove((index-3)~/2 + numWeeks);
-                  courseData[fieldName].add(-(index-3)~/2);
-                } else {
-                  courseData[fieldName].remove(-(index-3)~/2);
-                }
-                Provider.of<UserDB>(context, listen: false).updateCourses();
+                Provider.of<UserDB>(context, listen: false).pendingUpdateCourseProgress(courseData, fieldName, numWeeks, index);
               },
               child: Container(
                 constraints: BoxConstraints.expand(),
@@ -124,7 +107,6 @@ class CourseCard extends StatelessWidget {
         index == 0 || index == 2 || index == 30 ? null : VerticalDivider(color: Colors.black38);
 
     int flexByIndex(int index) => index == 1 ? 6 : (index == 3 ? 3 : 2);
-
     return CardWrapper(
         Row(
           children: List.generate(
