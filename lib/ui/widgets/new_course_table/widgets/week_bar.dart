@@ -21,21 +21,24 @@ class WeekBar extends StatelessWidget {
               color: mainColor,
             )
                 : Expanded(
-              child: Container(
-                child: Center(
-                    child: index == 3
-                        ? null
-                        : Text(
-                      index == 1
-                          ? "Course"
-                          : (index ~/ 2 - 1).toString(),
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold),
-                    )),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(3),
-                    color: Colors.white),
+              child: InkWell(
+                onLongPress: index < 3 ? null : (){ Provider.of<UserDB>(context, listen: false).pendingUpdateWeek(index); },
+                child: Container(
+                  child: Center(
+                      child: index == 3
+                          ? null
+                          : Text(
+                        index == 1
+                            ? "Course"
+                            : (index ~/ 2 - 1).toString(),
+                        style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold),
+                      )),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(3),
+                      color: Colors.white),
+                ),
               ),
               flex: index == 1 ? 9 : (index == 3 ? 0 : 2),
             )),

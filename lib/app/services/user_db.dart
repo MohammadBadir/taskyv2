@@ -18,6 +18,7 @@ class UserDB extends ChangeNotifier {
   Map courseOrderBySemester;
 
   Map courseProgressMap;
+  Map backupCourseProgressMap;
   List courseOrder;
 
   //Map pendingTaskMapBySemester;
@@ -632,6 +633,36 @@ class UserDB extends ChangeNotifier {
           } else {
             fieldList.add((index - 3) ~/ 2);
           }
+        }
+      }
+    }
+    updateCourses();
+  }
+
+  pendingUpdateWeek(int index){
+    int numWeeks = 13;
+    //TODO: Add backup
+    for (String courseName in courseOrder) {
+      Map courseMap = courseProgressMap[courseName];
+      Map courseData = courseMap['data'];
+      Map courseInfo = courseMap['info'];
+      List<String> fieldNames = [];
+      int lectureCount = courseInfo['lectureCount'];
+      int tutorialCount = courseInfo['tutorialCount'];
+      int workShopCount = courseInfo['workshopCount'];
+      if(lectureCount>0){
+        fieldNames.add(Strings.lecture);
+      }
+      if(tutorialCount>0){
+        fieldNames.add(Strings.tutorial);
+      }
+      if(workShopCount>0){
+        fieldNames.add(Strings.workshop);
+      }
+      for (String fieldName in fieldNames) {
+        List fieldList = courseData[fieldName];
+        if(!fieldList.contains((index - 3) ~/ 2) && !fieldList.contains(-(index - 3) ~/ 2) && !fieldList.contains((index - 3) ~/ 2 + numWeeks)){
+          fieldList.add(-(index - 3) ~/ 2);
         }
       }
     }
