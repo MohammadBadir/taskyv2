@@ -121,8 +121,8 @@ class CourseCard extends StatelessWidget {
                   child: Center(
                       child: index == 1
                           ? InkWell(
-                        onTap: (){
-                          //temporary
+                        onTap: true ? null : (){
+                          //TODO: temporary
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (BuildContext context) {

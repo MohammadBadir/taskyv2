@@ -554,6 +554,8 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
+  //WEEK ACTIONS
+
   /**
    * Adds a pending week to all courses in all categories.
    */
