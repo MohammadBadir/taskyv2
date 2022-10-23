@@ -9,6 +9,7 @@ class WeekBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color mainColor = Provider.of<UserDB>(context).mainColor;
+    var userDB = Provider.of<UserDB>(context, listen: false);
 
     var raw = Container(
       color: Colors.green,
@@ -22,7 +23,8 @@ class WeekBar extends StatelessWidget {
             )
                 : Expanded(
               child: InkWell(
-                onLongPress: index < 3 ? null : (){ Provider.of<UserDB>(context, listen: false).pendingUpdateWeek(index); },
+                onLongPress: index < 3 ? null : (){ userDB.markWeekAsPending(index); },
+                onTap: index < 3 ? null : (){ userDB.markWeekAsComplete(index); },
                 child: Container(
                   child: Center(
                       child: index == 3

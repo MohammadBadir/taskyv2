@@ -525,6 +525,9 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
+  /**
+   * Clears all markings from all courses.
+   */
   clearAllCourses(){
     int numWeeks = 13;
     for (String courseName in courseOrder) {
@@ -551,7 +554,12 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
-  pendingUpdateAllCourses(int numWeeks) {
+  /**
+   * Adds a pending week to all courses in all categories.
+   */
+  addPendingWeekInAllCourses() {
+    int numWeeks = 13;
+    //TODO: Add backup
     for (String courseName in courseOrder) {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
@@ -585,7 +593,10 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
-  standardUpdateAllCourses(){
+  /**
+   * Marks a completed week in all courses in all categories.
+   */
+  addCompletedWeekInAllCourses(){
     int numWeeks = 13;
     for (String courseName in courseOrder) {
       Map courseMap = courseProgressMap[courseName];
@@ -639,9 +650,16 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
-  pendingUpdateWeek(int index){
+  /**
+   * Marks an entire week as pending, in all courses. Skips completed weeks.
+   * If all courses are already pending, the week is cleared.
+   */
+  markWeekAsPending(int index){
+    //TODO: Get rid of index parameter syntax
     int numWeeks = 13;
+    int weekIndex = ((index - 3) ~/ 2);
     //TODO: Add backup
+    bool foundUnmarkedWeek = false, foundMarkedWeek = false, foundCompletedWeek = false;
     for (String courseName in courseOrder) {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
@@ -661,11 +679,124 @@ class UserDB extends ChangeNotifier {
       }
       for (String fieldName in fieldNames) {
         List fieldList = courseData[fieldName];
-        if(!fieldList.contains((index - 3) ~/ 2) && !fieldList.contains(-(index - 3) ~/ 2) && !fieldList.contains((index - 3) ~/ 2 + numWeeks)){
-          fieldList.add(-(index - 3) ~/ 2);
+        if(fieldList.contains(weekIndex) || fieldList.contains(weekIndex + numWeeks)){
+          foundCompletedWeek = true;
+          continue;
         }
+        if(!fieldList.contains(-weekIndex)){
+          fieldList.add(-weekIndex);
+          foundUnmarkedWeek = true;
+        } else {
+          foundMarkedWeek = true;
+        }
+      }
+    }
+    bool allWeeksArePending = !foundCompletedWeek && !foundUnmarkedWeek;
+    bool allWeeksAreCompleted = !foundMarkedWeek && !foundUnmarkedWeek;
+
+    if(allWeeksAreCompleted || allWeeksArePending){
+      clearWeek(weekIndex);
+    } else {
+      updateCourses();
+    }
+  }
+
+  /**
+   * Marks an entire week as complete, in all courses, including double weeks.
+   * If all courses are already completed, the week is cleared.
+   */
+  markWeekAsComplete(int index){
+    //TODO: Get rid of index parameter syntax
+    int numWeeks = 13;
+    int weekIndex = ((index - 3) ~/ 2);
+    //TODO: Add backup
+    bool foundUnmarkedWeek = false;
+    for (String courseName in courseOrder) {
+      Map courseMap = courseProgressMap[courseName];
+      Map courseData = courseMap['data'];
+      Map courseInfo = courseMap['info'];
+      List<String> fieldNames = [];
+      int lectureCount = courseInfo['lectureCount'];
+      int tutorialCount = courseInfo['tutorialCount'];
+      int workShopCount = courseInfo['workshopCount'];
+      if(lectureCount>0){
+        fieldNames.add(Strings.lecture);
+      }
+      if(tutorialCount>0){
+        fieldNames.add(Strings.tutorial);
+      }
+      if(workShopCount>0){
+        fieldNames.add(Strings.workshop);
+      }
+      for (String fieldName in fieldNames) {
+        List fieldList = courseData[fieldName];
+        int count;
+
+        if(fieldName == Strings.lecture){
+          count = lectureCount;
+        } else if(fieldName == Strings.tutorial){
+          count = tutorialCount;
+        } else {
+          count = workShopCount;
+        }
+
+        if(fieldList.contains(-weekIndex)){
+          fieldList.remove(-weekIndex);
+        }
+
+        if(count==1 && !fieldList.contains(weekIndex)){
+          fieldList.add(weekIndex);
+          foundUnmarkedWeek = true;
+        }
+
+        if(count==2 && fieldList.contains(weekIndex)){
+          fieldList.remove(weekIndex);
+        }
+
+        if(count==2 && !fieldList.contains(weekIndex+numWeeks)){
+          fieldList.add(weekIndex+numWeeks);
+          foundUnmarkedWeek = true;
+        }
+      }
+    }
+    if(!foundUnmarkedWeek){
+      clearWeek(weekIndex);
+    } else {
+      updateCourses();
+    }
+  }
+
+  /**
+   * Clears all markings in the given week, in all courses.
+   */
+  clearWeek(int weekIndex){
+    int numOfWeeks = 13;
+
+    for (String courseName in courseOrder) {
+      Map courseMap = courseProgressMap[courseName];
+      Map courseData = courseMap['data'];
+      Map courseInfo = courseMap['info'];
+      List<String> fieldNames = [];
+      int lectureCount = courseInfo['lectureCount'];
+      int tutorialCount = courseInfo['tutorialCount'];
+      int workShopCount = courseInfo['workshopCount'];
+      if(lectureCount>0){
+        fieldNames.add(Strings.lecture);
+      }
+      if(tutorialCount>0){
+        fieldNames.add(Strings.tutorial);
+      }
+      if(workShopCount>0){
+        fieldNames.add(Strings.workshop);
+      }
+      for (String fieldName in fieldNames) {
+        List fieldList = courseData[fieldName];
+        fieldList.remove(-weekIndex);
+        fieldList.remove(weekIndex);
+        fieldList.remove(weekIndex+numOfWeeks);
       }
     }
     updateCourses();
   }
+
 }
