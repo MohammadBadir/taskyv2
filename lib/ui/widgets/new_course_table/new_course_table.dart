@@ -35,7 +35,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
 
     List<Widget> courseCardList = [];
     courseOrder.forEach((courseName) {
-      courseCardList.add(CourseCard(courseName, courseProgressMap[courseName], mainColor: mainColor));
+      if(!userDB.isHiddenCourse(courseName)){
+        courseCardList.add(CourseCard(courseName, courseProgressMap[courseName], mainColor: mainColor));
+      }
     });
     //courseCardList.add(Text(MediaQuery.of(context).size.width.toString()));
     ListView courseCardListView = ListView(
@@ -57,7 +59,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
           Expanded(
             child: courseCardListView,
           ),
-          TableButtons()
+          //TableButtons()
         ],
       )) : ScreenTooSmallWidget(),
       floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(
@@ -122,7 +124,7 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                           builder: (BuildContext context) {
                                                             String oldCourseName = courseOrder[index];
                                                             String newCourseName = oldCourseName;
-                                                            CourseOptions courseOptions = courseOptionsFromInfo(courseProgressMap[oldCourseName]["info"]);
+                                                            var courseOptions = CourseOptions.fromInfoMap(courseProgressMap[oldCourseName]["info"]);
                                                             int lecCount = courseOptions.lectureCount;
                                                             int tutCount = courseOptions.tutorialCount;
                                                             int wrkCount = courseOptions.workShopCount;
@@ -315,6 +317,14 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                                                       style: TextStyle(
                                                           color: Colors.red),),
                                                   ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      userDB.toggleHideCourse(courseOrder[index]);
+                                                    },
+                                                    child: Text(userDB.isHiddenCourse(courseOrder[index]) ? "UNHIDE" : "HIDE",
+                                                      style: TextStyle(
+                                                          color: Colors.green),),
+                                                  ),
                                                   ReorderableDragStartListener(
                                                     index: index,
                                                     child: Padding(
@@ -350,6 +360,59 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
                         ),
                       ),
                       actions: [
+                        TextButton(
+                            onPressed: (){
+                              showDialog(
+                                  context: context,
+                                  builder: (
+                                      BuildContext context) {
+                                    return StatefulBuilder(
+                                      builder: (context,
+                                          setState) {
+                                        return AlertDialog(
+                                          title: Text(
+                                              "Are you sure you want to delete all courses?"),
+                                          content: Text(
+                                              "This action cannot be undone"),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Provider
+                                                    .of<
+                                                    UserDB>(
+                                                    context,
+                                                    listen: false)
+                                                    .deleteAllCourses();
+                                                Navigator
+                                                    .of(
+                                                    context)
+                                                    .pop();
+                                              },
+                                              child: Text(
+                                                  "Yes"),
+                                            ),
+                                            TextButton(
+                                                onPressed: () {
+                                                  Navigator
+                                                      .of(
+                                                      context)
+                                                      .pop();
+                                                },
+                                                child: Text(
+                                                    "No")
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text("Delete All Courses", style: TextStyle(color: Colors.red),),
+                            )
+                        ),
                         TextButton(
                             onPressed: () {
                               showDialog(
@@ -518,16 +581,5 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
         },
       ),
     );
-  }
-
-  CourseOptions courseOptionsFromInfo(Map courseInfo){
-    CourseOptions options = CourseOptions();
-    options.lectureCount = courseInfo['lectureCount'];
-    options.tutorialCount = courseInfo['tutorialCount'];
-    options.workShopCount = courseInfo['workshopCount'];
-    if(options.lectureCount + options.tutorialCount + options.workShopCount == 0) {
-      options.isSingleton = true;
-    }
-    return options;
   }
 }

@@ -6,6 +6,8 @@ import '../../../../app/services/user_db.dart';
 class WeekBar extends StatelessWidget {
   const WeekBar({Key key}) : super(key: key);
 
+  int indexToWeek(int index) => index ~/ 2 - 1;
+
   @override
   Widget build(BuildContext context) {
     Color mainColor = Provider.of<UserDB>(context).mainColor;
@@ -32,7 +34,7 @@ class WeekBar extends StatelessWidget {
                           : Text(
                         index == 1
                             ? "Course"
-                            : (index ~/ 2 - 1).toString(),
+                            : indexToWeek(index).toString(),
                         style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold),

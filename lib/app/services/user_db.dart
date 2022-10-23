@@ -257,19 +257,9 @@ class UserDB extends ChangeNotifier {
       CourseOptions newCourseOptions) {
     bool changesMade = false;
     bool nameChanged = false;
-    CourseOptions courseOptionsFromInfo(Map courseInfo) {
-      CourseOptions options = CourseOptions();
-      options.lectureCount = courseInfo['lectureCount'];
-      options.tutorialCount = courseInfo['tutorialCount'];
-      options.workShopCount = courseInfo['workshopCount'];
-      if (options.lectureCount + options.tutorialCount +
-          options.workShopCount == 0) {
-        options.isSingleton = true;
-      }
-      return options;
-    }
+
     Map courseMap = courseProgressMap[courseName];
-    CourseOptions oldCourseOptions = courseOptionsFromInfo(courseMap["info"]);
+    CourseOptions oldCourseOptions = CourseOptions.fromInfoMap(courseMap["info"]);
     Map courseData = courseMap['data'];
     if (oldCourseOptions.lectureCount != newCourseOptions.lectureCount) {
       changesMade = true;
@@ -310,7 +300,8 @@ class UserDB extends ChangeNotifier {
     Map newInfoMap = {
       'lectureCount': newCourseOptions.lectureCount,
       'tutorialCount': newCourseOptions.tutorialCount,
-      'workshopCount': newCourseOptions.workShopCount
+      'workshopCount': newCourseOptions.workShopCount,
+      'isHidden' : oldCourseOptions.isHidden
     };
     courseMap["info"] = newInfoMap;
     if (newCourseName != courseName) {
@@ -499,28 +490,30 @@ class UserDB extends ChangeNotifier {
   standardUpdateCourseProgress(Map courseData, String fieldName, int numWeeks,
       int count, int index) {
     //TODO: Logic is very messy, organize it...
-    if (courseData[fieldName].contains((index - 3) ~/ 2)) {
-      courseData[fieldName].remove((index - 3) ~/ 2);
-      if (count == 2) courseData[fieldName].add((index - 3) ~/ 2 + numWeeks);
-    } else if (courseData[fieldName].contains((index - 3) ~/ 2 + numWeeks)) {
-      courseData[fieldName].remove((index - 3) ~/ 2 + numWeeks);
-    } else if (courseData[fieldName].contains(-(index - 3) ~/ 2)) {
-      courseData[fieldName].remove(-(index - 3) ~/ 2);
-      courseData[fieldName].add((index - 3) ~/ 2);
+    int weekIndex = (index - 3) ~/ 2;
+    if (courseData[fieldName].contains(weekIndex)) {
+      courseData[fieldName].remove(weekIndex);
+      if (count == 2) courseData[fieldName].add(weekIndex + numWeeks);
+    } else if (courseData[fieldName].contains(weekIndex + numWeeks)) {
+      courseData[fieldName].remove(weekIndex + numWeeks);
+    } else if (courseData[fieldName].contains(-weekIndex)) {
+      courseData[fieldName].remove(-weekIndex);
+      courseData[fieldName].add(weekIndex);
     } else {
-      courseData[fieldName].add((index - 3) ~/ 2);
+      courseData[fieldName].add(weekIndex);
     }
     updateCourses();
   }
 
   pendingUpdateCourseProgress(Map courseData, String fieldName, int numWeeks,
       int index) {
-    if (!courseData[fieldName].contains(-(index - 3) ~/ 2)) {
-      courseData[fieldName].remove((index - 3) ~/ 2);
-      courseData[fieldName].remove((index - 3) ~/ 2 + numWeeks);
-      courseData[fieldName].add(-(index - 3) ~/ 2);
+    int weekIndex = (index - 3) ~/ 2;
+    if (!courseData[fieldName].contains(-weekIndex)) {
+      courseData[fieldName].remove(weekIndex);
+      courseData[fieldName].remove(weekIndex + numWeeks);
+      courseData[fieldName].add(-weekIndex);
     } else {
-      courseData[fieldName].remove(-(index - 3) ~/ 2);
+      courseData[fieldName].remove(-weekIndex);
     }
     updateCourses();
   }
@@ -552,6 +545,15 @@ class UserDB extends ChangeNotifier {
       }
     }
     updateCourses();
+  }
+
+  /**
+   * Delete all courses in the currently selected semester.
+   */
+  deleteAllCourses(){
+    while(courseOrder.isNotEmpty){
+      deleteCourse(0);
+    }
   }
 
   //WEEK ACTIONS
@@ -801,4 +803,25 @@ class UserDB extends ChangeNotifier {
     updateCourses();
   }
 
+  //HIDDEN COURSES
+
+  /***
+   * returns true iff the given course is marked as hidden in its infoMap
+   */
+  bool isHiddenCourse(String courseName){
+    Map courseMap = courseProgressMap[courseName];
+    CourseOptions courseOptions = CourseOptions.fromInfoMap(courseMap["info"]);
+    return courseOptions.isHidden;
+  }
+
+  /**
+   * Toggles hidden course option.
+   */
+  toggleHideCourse(String courseName){
+    Map courseInfoMap = (courseProgressMap[courseName])["info"];
+    CourseOptions courseOptions = CourseOptions.fromInfoMap(courseInfoMap);
+    courseOptions.toggleHide();
+    courseOptions.writeToInfoMap(courseInfoMap);
+    updateCourses();
+  }
 }

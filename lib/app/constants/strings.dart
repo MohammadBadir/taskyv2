@@ -1,7 +1,7 @@
 class Strings {
   // App
   static const String appName = 'Tasky';
-  static const String version = 'v0.4.7';
+  static const String version = 'v0.5dev';
 
   // Authentication
   static const String signInMessage = 'Please sign in to continue';
@@ -10,6 +10,7 @@ class Strings {
   static const String welcomeToTasky = 'Welcome to Tasky! :)';
 
   //New Course Table
+  static const String course = "Course";
   static const String newCourseTableTitle = "New Course Table";
   static const String lecture = "Lecture";
   static const String secondLecture = "SecondLecture";
