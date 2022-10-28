@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:tasky/app/constants/pages.dart';
 import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/constants/themes.dart';
+import 'package:tasky/app/logic/enums.dart';
 import 'package:tasky/app/models/course_options.dart';
 
 class UserDB extends ChangeNotifier {
@@ -41,6 +43,8 @@ class UserDB extends ChangeNotifier {
   bool firstTime;
 
   int debugNum = 0;
+
+  Map<int, Map<String, Map<String, CellStatus>>> backupMap = {}; // weekIndex -> courseName -> fieldType (lec/tut/wrk) -> FieldType
 
   downloadCourseData() async {
     print("Fetching Data");
@@ -103,6 +107,11 @@ class UserDB extends ChangeNotifier {
 
       semesterOrder = userData['semesterOrder'];
       currentSemester = userData['currentSemester'];
+
+      //Bugfix - Up to v0.4.7, deleting semester did not correctly update currentSemester variable
+      if(currentSemester>=semesterOrder.length){
+        currentSemester = 0;
+      }
 
       courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
       courseProgressMap =
@@ -171,6 +180,9 @@ class UserDB extends ChangeNotifier {
   //
   // }
 
+  /**
+   * Legacy function - unused
+   */
   addWord(String word) async {
     assert(FirebaseAuth.instance.currentUser != null);
     assert(courseOrder != null);
@@ -478,7 +490,13 @@ class UserDB extends ChangeNotifier {
     progressMapsBySemester.remove(name);
     courseOrderBySemester.remove(name);
     homeworkListBySemester.remove(name);
+
+    if(currentSemester>index){
+      currentSemester--;
+    }
+
     userDocument.update({
+      'currentSemester' : currentSemester,
       'semesterOrder': semesterOrder,
       'courseOrderBySemester': courseOrderBySemester,
       'progressMapsBySemester': progressMapsBySemester,
@@ -519,7 +537,7 @@ class UserDB extends ChangeNotifier {
   }
 
   /**
-   * Clears all markings from all courses.
+   * Clears all markings from all courses (including hidden).
    */
   clearAllCourses(){
     int numWeeks = 13;
@@ -548,7 +566,7 @@ class UserDB extends ChangeNotifier {
   }
 
   /**
-   * Delete all courses in the currently selected semester.
+   * Delete all courses in the currently selected semester (including hidden ones).
    */
   deleteAllCourses(){
     while(courseOrder.isNotEmpty){
@@ -559,7 +577,7 @@ class UserDB extends ChangeNotifier {
   //WEEK ACTIONS
 
   /**
-   * Adds a pending week to all courses in all categories.
+   * Adds a pending week to all (including hidden) courses in all categories.
    */
   addPendingWeekInAllCourses() {
     int numWeeks = 13;
@@ -598,7 +616,7 @@ class UserDB extends ChangeNotifier {
   }
 
   /**
-   * Marks a completed week in all courses in all categories.
+   * Marks a completed week in all (including hidden) courses in all categories.
    */
   addCompletedWeekInAllCourses(){
     int numWeeks = 13;
@@ -655,7 +673,7 @@ class UserDB extends ChangeNotifier {
   }
 
   /**
-   * Marks an entire week as pending, in all courses. Skips completed weeks.
+   * Marks an entire week as pending, in all unhidden courses. Skips completed weeks.
    * If all courses are already pending, the week is cleared.
    */
   markWeekAsPending(int index){
@@ -668,10 +686,17 @@ class UserDB extends ChangeNotifier {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
       Map courseInfo = courseMap['info'];
+      var courseOptions = CourseOptions.fromInfoMap(courseInfo);
+
+      if(courseOptions.isHidden){
+        continue;
+      }
+
       List<String> fieldNames = [];
-      int lectureCount = courseInfo['lectureCount'];
-      int tutorialCount = courseInfo['tutorialCount'];
-      int workShopCount = courseInfo['workshopCount'];
+      int lectureCount = courseOptions.lectureCount;
+      int tutorialCount = courseOptions.tutorialCount;
+      int workShopCount = courseOptions.workShopCount;
+
       if(lectureCount>0){
         fieldNames.add(Strings.lecture);
       }
@@ -706,23 +731,35 @@ class UserDB extends ChangeNotifier {
   }
 
   /**
-   * Marks an entire week as complete, in all courses, including double weeks.
+   * Marks an entire week as complete, in all unhidden courses, including double weeks.
    * If all courses are already completed, the week is cleared.
    */
-  markWeekAsComplete(int index){
+  markWeekAsComplete(BuildContext context, int index){
+
     //TODO: Get rid of index parameter syntax
     int numWeeks = 13;
     int weekIndex = ((index - 3) ~/ 2);
+
+
+
     //TODO: Add backup
     bool foundUnmarkedWeek = false;
     for (String courseName in courseOrder) {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
       Map courseInfo = courseMap['info'];
+
+      var courseOptions = CourseOptions.fromInfoMap(courseInfo);
+
+      if(courseOptions.isHidden){
+        continue;
+      }
+
       List<String> fieldNames = [];
-      int lectureCount = courseInfo['lectureCount'];
-      int tutorialCount = courseInfo['tutorialCount'];
-      int workShopCount = courseInfo['workshopCount'];
+      int lectureCount = courseOptions.lectureCount;
+      int tutorialCount = courseOptions.tutorialCount;
+      int workShopCount = courseOptions.workShopCount;
+
       if(lectureCount>0){
         fieldNames.add(Strings.lecture);
       }
@@ -767,11 +804,12 @@ class UserDB extends ChangeNotifier {
       clearWeek(weekIndex);
     } else {
       updateCourses();
+      _showCompletedWeekSnackBar(context, weekIndex);
     }
   }
 
   /**
-   * Clears all markings in the given week, in all courses.
+   * Clears all markings in the given week, in all unhidden courses.
    */
   clearWeek(int weekIndex){
     int numOfWeeks = 13;
@@ -780,10 +818,17 @@ class UserDB extends ChangeNotifier {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
       Map courseInfo = courseMap['info'];
+      var courseOptions = CourseOptions.fromInfoMap(courseInfo);
+
+      if(courseOptions.isHidden){
+        continue;
+      }
+
       List<String> fieldNames = [];
-      int lectureCount = courseInfo['lectureCount'];
-      int tutorialCount = courseInfo['tutorialCount'];
-      int workShopCount = courseInfo['workshopCount'];
+      int lectureCount = courseOptions.lectureCount;
+      int tutorialCount = courseOptions.tutorialCount;
+      int workShopCount = courseOptions.workShopCount;
+
       if(lectureCount>0){
         fieldNames.add(Strings.lecture);
       }
@@ -823,5 +868,72 @@ class UserDB extends ChangeNotifier {
     courseOptions.toggleHide();
     courseOptions.writeToInfoMap(courseInfoMap);
     updateCourses();
+  }
+
+  /**
+   *
+   */
+  _showCompletedWeekSnackBar(BuildContext context, int weekIndex){
+    var userDB = Provider.of<UserDB>(context, listen: false);
+    final snackBar = SnackBar(
+      content: Text("Marked week " + weekIndex.toString() + " as complete"),
+      action: SnackBarAction(
+        label: "UNDO",
+        onPressed: (){
+
+        },
+      ),
+    );
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  /**
+   * Returns cell status of the given course's fieldType at weekIndex
+   */
+  CellStatus _getCellStatus(String courseName, String fieldType, int weekIndex){
+    int numOfWeeks = 13;
+    List fieldList = courseProgressMap[courseName]['data'][fieldType];
+    if(fieldList.contains(-weekIndex)){
+      return CellStatus.Pending;
+    } else if(fieldList.contains(weekIndex)){
+      return CellStatus.Complete;
+    } else if(fieldList.contains(weekIndex+numOfWeeks)){
+      return CellStatus.Double;
+    } else {
+      return CellStatus.Empty;
+    }
+  }
+
+  _storeBackup(int weekIndex){
+    backupMap.clear();
+    Map<String, Map<String, CellStatus>> weekMap = backupMap[weekIndex] = {};
+    for(String courseName in courseOrder){
+      Map courseMap = courseProgressMap[courseName];
+      Map courseData = courseMap['data'];
+      Map courseInfo = courseMap['info'];
+      var courseOptions = CourseOptions.fromInfoMap(courseInfo);
+
+      List<String> fieldNames = [];
+      int lectureCount = courseOptions.lectureCount;
+      int tutorialCount = courseOptions.tutorialCount;
+      int workShopCount = courseOptions.workShopCount;
+
+      if(lectureCount>0){
+        fieldNames.add(Strings.lecture);
+      }
+      if(tutorialCount>0){
+        fieldNames.add(Strings.tutorial);
+      }
+      if(workShopCount>0){
+        fieldNames.add(Strings.workshop);
+      }
+
+      weekMap[courseName] = {};
+      for (String fieldName in fieldNames){
+        weekMap[courseName][fieldName] = _getCellStatus(courseName, fieldName, weekIndex);
+      }
+
+    }
   }
 }
