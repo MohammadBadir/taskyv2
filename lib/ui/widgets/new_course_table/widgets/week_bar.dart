@@ -25,7 +25,7 @@ class WeekBar extends StatelessWidget {
             )
                 : Expanded(
               child: InkWell(
-                onLongPress: index < 3 ? null : (){ userDB.markWeekAsPending(index); },
+                onLongPress: index < 3 ? null : (){ userDB.markWeekAsPending(context, index); },
                 onTap: index < 3 ? null : (){ userDB.markWeekAsComplete(context, index); },
                 child: Container(
                   child: Center(
