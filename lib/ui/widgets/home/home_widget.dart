@@ -249,6 +249,9 @@ class _HomeWidgetState extends State<HomeWidget> {
                 SizedBox(
                   height: 40,
                   child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Provider.of<UserDB>(context, listen: false).mainColor)
+                      ),
                       onPressed: (){
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
@@ -268,6 +271,9 @@ class _HomeWidgetState extends State<HomeWidget> {
                 SizedBox(
                   height: 40,
                   child: ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(Provider.of<UserDB>(context, listen: false).mainColor)
+                      ),
                       onPressed: (){
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
