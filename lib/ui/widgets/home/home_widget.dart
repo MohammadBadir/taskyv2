@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
@@ -5,6 +7,9 @@ import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
+
+import '../homework_table/task_table.dart';
+import '../new_course_table/new_course_table.dart';
 
 class HomeWidget extends StatefulWidget {
   const HomeWidget({Key key}) : super(key: key);
@@ -100,54 +105,118 @@ class _HomeWidgetState extends State<HomeWidget> {
     double taskWidth = screenWidth > 2000 ? screenWidth/2 : (screenWidth > 1000 ? 1000 : screenWidth);
     bool noTasks = pendingTaskList.isEmpty;
 
+    var noTasksWidgets = [
+      Expanded(
+        flex: 10,
+        child: Center(
+          child: Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("You have no pending tasks",
+                  style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Provider.of<UserDB>(context, listen: false).secondaryColor
+                  ),
+                ),
+                Container(height: 40,),
+                Text("Add some by clicking the plus button",
+                  style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Provider.of<UserDB>(context, listen: false).secondaryColor
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      )
+    ];
+
+    int horCount;
+    for(horCount=6; horCount>0; --horCount){
+      if(MediaQuery.of(context).size.width/horCount>=300){
+        break;
+      }
+    }
+
+    var currentTime = DateTime.now();
+    int daysBetween(DateTime from, DateTime to) {
+      from = DateTime(from.year, from.month, from.day);
+      to = DateTime(to.year, to.month, to.day);
+      return (to.difference(from).inHours / 24).round();
+    }
+    double cardListWidth = taskWidth - 100;
+    double courseCardWidth = cardListWidth/3;
+    List sortedTaskList = List.from(Provider.of<UserDB>(context).homeworkList.where((element) => daysBetween(currentTime, DateTime.fromMillisecondsSinceEpoch(element['due']))>=0));
+    sortedTaskList.sort((var a, var b) => a['due'].compareTo(b['due']));
+
+    Widget taskCardMaker(int index, double cardWidth){
+      var borderColor = Provider.of<UserDB>(context).mainColor;
+      var buttonColor = Provider.of<UserDB>(context).secondaryColor;
+      var hwData = sortedTaskList[index];
+      var userDb = Provider.of<UserDB>(context);
+      int timeDiff(int index) {
+        return daysBetween(currentTime, DateTime.fromMillisecondsSinceEpoch(sortedTaskList[index]['due']));
+      }
+      int timeLeft = timeDiff(index);
+      var content = Container(
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(sortedTaskList[index]['taskType']=='hw' ? Icons.event_note : Icons.assignment_outlined),
+                title: Text(
+                  hwData['courseName'],
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(hwData['hwName']),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Text(
+                  timeLeft>0 ? "Due in " + timeDiff(index).toString() + " days" : "Due Today!",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+        // height: 100,
+        decoration: BoxDecoration(
+            border: Border(bottom:BorderSide(color: borderColor, width: 5) ,top: BorderSide(color: borderColor, width: 5))
+        ),
+      );
+
+      return Container(
+        width: cardWidth,
+        child: Card(
+          color: Colors.white,
+          child: ClipPath(
+            child: content,
+            clipper: ShapeBorderClipper(shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3))),
+          ),
+        ),
+      );
+    }
+    int numOfCoursesToShow = min(3, sortedTaskList.length);
+
     return Scaffold(
       appBar: taskyAppBar(context, "Home"),
       drawer: NavigationDrawer(),
-      body: MediaQuery.of(context).size.width<950 ? ScreenTooSmallWidget() : Center(
+      body: MediaQuery.of(context).size.width<950 || MediaQuery.of(context).size.height<600 ? ScreenTooSmallWidget() : Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: noTasks ? [
-          Expanded(
-            child: Center(
-              child: Container(
-                child: Text("Welcome back, "+Provider.of<UserDB>(context).displayName,
-                  style: TextStyle(
-                    fontSize: 50,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          children: [
             Expanded(
               flex: 4,
-              child: Center(
-                child: Container(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text("You have no pending tasks",
-                        style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Provider.of<UserDB>(context, listen: false).secondaryColor
-                        ),
-                      ),
-                      Container(height: 40,),
-                      Text("Add some by clicking the plus button",
-                        style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Provider.of<UserDB>(context, listen: false).secondaryColor
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            )
-          ] : [
-            Expanded(
               child: Center(
                 child: Container(
                   child: Text(Provider.of<UserDB>(context, listen: false).firstTime ? "Welcome!" : "Welcome back, "+Provider.of<UserDB>(context).displayName,
@@ -159,21 +228,80 @@ class _HomeWidgetState extends State<HomeWidget> {
                 ),
               ),
             ),
-            Expanded(
+            numOfCoursesToShow==0 ? Container() : SizedBox(
+              height: 160,
               child: Center(
                 child: Container(
-                  child: Text("Your current tasks:",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Provider.of<UserDB>(context, listen: false).secondaryColor
+                  width: cardListWidth * (numOfCoursesToShow/3),
+                  child: Row(
+                    children: List.generate(
+                        numOfCoursesToShow,
+                            (index) => taskCardMaker(index, courseCardWidth)
                     ),
                   ),
                 ),
               ),
             ),
+            numOfCoursesToShow==0 ? Container() : Expanded(child: Container()),
+            numOfCoursesToShow==0 ? Container() : Row(
+              children: [
+                Expanded(flex: 9, child: Container()),
+                SizedBox(
+                  height: 40,
+                  child: ElevatedButton(
+                      onPressed: (){
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) {
+                              return NewCourseTableWidget();
+                            },
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "View Course Table",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )
+                  ),
+                ),
+                Expanded(child: Container()),
+                SizedBox(
+                  height: 40,
+                  child: ElevatedButton(
+                      onPressed: (){
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (BuildContext context) {
+                              return TaskWidget();
+                            },
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "View All Assignments",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      )
+                  ),
+                ),
+                Expanded(flex: 9, child: Container())
+              ],
+            ),
+          ]
+              +
+          (noTasks ? noTasksWidgets : [
+            Expanded(child: Container()),
+            Container(
+              child: Text("Your current tasks:",
+                style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Provider.of<UserDB>(context, listen: false).secondaryColor
+                ),
+              ),
+            ),
+            Expanded(child: Container()),
             Expanded(
-              flex: 3,
+              flex: 10,
               child: Container(
                 width: taskWidth,
                 child: ReorderableListView(
@@ -342,7 +470,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                     ),
               ),
             )
-          ]
+          ])
         ),
       ),
       floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(

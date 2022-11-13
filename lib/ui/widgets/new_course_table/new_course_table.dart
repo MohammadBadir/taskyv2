@@ -62,8 +62,9 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
           //TableButtons()
         ],
       )) : ScreenTooSmallWidget(),
-      floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton(
-        child: /*Provider.of<UserDB>(context).editMode ? Icon(Icons.check_rounded, size: 35.0,) :*/ Icon(Icons.edit),
+      floatingActionButton: MediaQuery.of(context).size.width<950 ? null : FloatingActionButton.extended(
+        label: Text("EDIT"),
+        icon: /*Provider.of<UserDB>(context).editMode ? Icon(Icons.check_rounded, size: 35.0,) :*/ Icon(Icons.edit),
         backgroundColor: mainColor,
         onPressed: (){
           // Provider.of<UserDB>(context, listen: false).standardUpdateAllCourses();
