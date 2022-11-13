@@ -178,7 +178,7 @@ class _HomeWidgetState extends State<HomeWidget> {
               Padding(
                 padding: const EdgeInsets.all(6.0),
                 child: Text(
-                  timeLeft>0 ? "Due in " + timeDiff(index).toString() + " days" : "Due Today!",
+                  timeLeft>0 ? "Due in " + timeDiff(index).toString() + " day" + (timeDiff(index)>1 ? "s" : "") : "Due Today!",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20
