@@ -11,6 +11,8 @@ import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 
+import '../new_course_table/new_course_table.dart';
+
 class TaskWidget extends StatelessWidget{
   int daysBetween(DateTime from, DateTime to) {
     from = DateTime(from.year, from.month, from.day);
@@ -313,7 +315,36 @@ class TaskWidget extends StatelessWidget{
 
     var content;
     if (Provider.of<UserDB>(context).courseOrder.isEmpty) {
-      content = Text("No courses found. Add some in the Course Table tab!",style: TextStyle(fontSize: 24));
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("No courses found. Add some in the Course Table tab!",style: TextStyle(fontSize: 24)),
+          SizedBox(
+            height: 30,
+          ),
+          SizedBox(
+            height: 40,
+            child: ElevatedButton(
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Provider.of<UserDB>(context, listen: false).mainColor)
+                ),
+                onPressed: (){
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return NewCourseTableWidget();
+                      },
+                    ),
+                  );
+                },
+                child: Text(
+                  "View Course Table",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                )
+            ),
+          )
+        ],
+      );
     } else if (Provider.of<UserDB>(context).homeworkList.isEmpty) {
       content = Text("Click on the Plus button to add assignments!",style: TextStyle(fontSize: 24));
     } else {

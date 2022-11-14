@@ -63,7 +63,7 @@ class UserDB extends ChangeNotifier {
       courseProgressMap = {};
       pendingTaskList = ["Example Task"];
 
-      semesterOrder = ["Spring 2022"];
+      semesterOrder = ["Winter 22-23"];
       currentSemester = 0;
       homeworkList = [];
 
