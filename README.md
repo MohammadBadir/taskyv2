@@ -1,14 +1,17 @@
 # Tasky
 
 Tasky is a webapp designed to help you keep track of your course schedules and assignments.
+Hosted at: https://taskyv2.web.app
 
-# Release 0.4.5
+# Release 0.5.3
 
-- Fixed remaining days bug
-- Added Semester Change Option
+- Added option to hide courses
+- Added important HW and assignments on home page
 
 ## Getting Started with Source Code
 
-Create a new Flutter Project in Android Studio, then import the project.
+Make sure that Flutter extensions are installed.
+
+Clone the repo, and import into Android Studio.
 
 Use the "flutter create ." command to initialize web files, and the "flutter run -d chrome" command to launch the client.
