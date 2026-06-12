@@ -1,16 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart' ;
-import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/user_data.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
   bool _isInitialized;
 
-  FirebaseAuthService({FirebaseAuth firebaseAuth, GoogleSignIn googleSignin})
+  FirebaseAuthService({FirebaseAuth firebaseAuth})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignin ?? GoogleSignIn(),
         _isInitialized = false;
 
   UserData _userDataFromFirebaseUser(User user) {
@@ -35,14 +32,18 @@ class FirebaseAuthService {
   }
 
   Future<UserData> signInWithGoogle() async {
-    final googleUser = await _googleSignIn.signIn();
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    final authResult = await _firebaseAuth.signInWithCredential(credential);
-    return _userDataFromFirebaseUser(authResult.user);
+    //Firebase-native popup flow. The google_sign_in plugin's web
+    //implementation depends on Google's gapi platform.js, deprecated
+    //since March 2023 and liable to be shut off.
+    try {
+      final authResult =
+          await _firebaseAuth.signInWithPopup(GoogleAuthProvider());
+      return _userDataFromFirebaseUser(authResult.user);
+    } on FirebaseAuthException catch (e) {
+      //e.g. popup closed by user - treat as a cancelled sign-in
+      print("Google sign-in did not complete: " + e.code);
+      return null;
+    }
   }
 
   Future<void> signOut() async {
