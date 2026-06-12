@@ -454,6 +454,11 @@ Widget taskyAppBar(context, String title){
                                                                               showBasicDialog(context, "Semester Name cannot be empty!");
                                                                               return;
                                                                             }
+                                                                            if (semesterName != Provider.of<UserDB>(context, listen: false).semesterOrder[index]
+                                                                                && Provider.of<UserDB>(context, listen: false).semesterOrder.contains(semesterName)) {
+                                                                              showBasicDialog(context, "Semester already exists!");
+                                                                              return;
+                                                                            }
                                                                             Provider.of<
                                                                                 UserDB>(
                                                                                 context,
@@ -563,7 +568,11 @@ Widget taskyAppBar(context, String title){
                                               TextButton(
                                                   onPressed: () {
                                                     if (semesterName == null || semesterName=="") {
-                                                      showBasicDialog(context, "Username cannot be empty!");
+                                                      showBasicDialog(context, "Semester Name cannot be empty!");
+                                                      return;
+                                                    }
+                                                    if (Provider.of<UserDB>(context, listen: false).semesterOrder.contains(semesterName)) {
+                                                      showBasicDialog(context, "Semester already exists!");
                                                       return;
                                                     }
                                                     Provider.of<UserDB>(context, listen: false).addSemester(semesterName);

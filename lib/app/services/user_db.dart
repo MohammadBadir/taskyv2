@@ -95,36 +95,66 @@ class UserDB extends ChangeNotifier {
 
       Map<String, dynamic> userData = userSnapshot.data();
 
-      courseOrderBySemester = userData['courseOrderBySemester'];
-      progressMapsBySemester = userData['progressMapsBySemester'];
+      courseOrderBySemester = userData['courseOrderBySemester'] ?? {};
+      progressMapsBySemester = userData['progressMapsBySemester'] ?? {};
       pendingTaskListBySemester = userData['pendingTaskListBySemester'];
       homeworkListBySemester = userData['homeworkListBySemester'];
 
       //backwards compatibility
       if (homeworkListBySemester == null) {
-        homeworkList = userData['homeworkList'];
+        homeworkList = userData['homeworkList'] ?? [];
         homeworkListBySemester = {'Winter 2020-2021': homeworkList};
         userDocument.update({'homeworkListBySemester': homeworkListBySemester});
       }
+      if (pendingTaskListBySemester == null) {
+        pendingTaskListBySemester = {
+          'Winter 2020-2021': userData['pendingTaskList'] ?? []
+        };
+        userDocument.update(
+            {'pendingTaskListBySemester': pendingTaskListBySemester});
+      }
 
-      semesterOrder = userData['semesterOrder'];
-      currentSemester = userData['currentSemester'];
+      semesterOrder = userData['semesterOrder'] ?? [];
+      currentSemester = userData['currentSemester'] ?? 0;
+
+      //Defensive repair - an empty semesterOrder would crash every login,
+      //permanently locking the account out
+      if (semesterOrder.isEmpty) {
+        semesterOrder = ["Winter 22-23"];
+        currentSemester = 0;
+        userDocument.update({'semesterOrder': semesterOrder});
+      }
 
       //Bugfix - Up to v0.4.7, deleting semester did not correctly update currentSemester variable
-      if(currentSemester>=semesterOrder.length){
+      if(currentSemester<0 || currentSemester>=semesterOrder.length){
         currentSemester = 0;
       }
 
-      courseOrder = courseOrderBySemester[semesterOrder[currentSemester]];
-      courseProgressMap =
-      progressMapsBySemester[semesterOrder[currentSemester]];
+      //Defensive - ensure the selected semester has entries in every map
+      String selectedSemesterName = semesterOrder[currentSemester];
+      courseOrderBySemester[selectedSemesterName] ??= [];
+      progressMapsBySemester[selectedSemesterName] ??= {};
+      homeworkListBySemester[selectedSemesterName] ??= [];
+      pendingTaskListBySemester['Winter 2020-2021'] ??= [];
+
+      courseOrder = courseOrderBySemester[selectedSemesterName];
+      courseProgressMap = progressMapsBySemester[selectedSemesterName];
       pendingTaskList = pendingTaskListBySemester['Winter 2020-2021'];
-      homeworkList = homeworkListBySemester[semesterOrder[currentSemester]];
+      homeworkList = homeworkListBySemester[selectedSemesterName];
 
-      selectedTheme = userData['theme'];
-      defaultPage = userData['defaultPage'];
+      selectedTheme = userData['theme'] ?? 0;
+      if (selectedTheme < 0 || selectedTheme >= Themes.colorPalletes.length) {
+        selectedTheme = 0;
+      }
+      defaultPage = userData['defaultPage'] ?? 0;
+      if (defaultPage < 0 || defaultPage >= Pages.pageNames.length) {
+        defaultPage = 0;
+      }
 
-      displayName = userData['displayName'];
+      displayName = userData['displayName'] ?? "User";
+      if (displayName == "") {
+        displayName = "User";
+      }
     }
 
     mainColor = Themes.colorPalletes[selectedTheme]['main'];
@@ -442,6 +472,10 @@ class UserDB extends ChangeNotifier {
   }
 
   addSemester(String semesterName) {
+    //Guard - a duplicate name would overwrite the existing semester's data
+    if (semesterOrder.contains(semesterName)) {
+      return;
+    }
     semesterOrder.add(semesterName);
     progressMapsBySemester[semesterName] = {};
     courseOrderBySemester[semesterName] = [];
@@ -469,6 +503,12 @@ class UserDB extends ChangeNotifier {
 
   renameSemester(int index, String newName) {
     String oldName = semesterOrder[index];
+    //Guard - renaming to the same name would delete the semester's data
+    //(map entry is re-assigned to itself, then removed); renaming onto a
+    //different existing semester would overwrite that semester's data
+    if (newName == oldName || semesterOrder.contains(newName)) {
+      return;
+    }
     semesterOrder.removeAt(index);
     semesterOrder.insert(index, newName);
     progressMapsBySemester[newName] = progressMapsBySemester[oldName];

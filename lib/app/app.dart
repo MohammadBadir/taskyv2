@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:tasky/app/services/firebase_auth_service.dart';
@@ -34,6 +32,10 @@ class _MyAppState extends State<MyApp> {
         return TaskWidget();
       }
       break;
+      //Out-of-range defaultPage (corrupted doc) must not return null
+      default:{
+        return HomeWidget();
+      }
     }
   }
 
