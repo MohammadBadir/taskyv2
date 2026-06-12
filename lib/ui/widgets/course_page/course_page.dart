@@ -4,7 +4,6 @@ import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/week_bar.dart';
 
 import '../../../app/services/user_db.dart';
-import '../app_bar/tasky_app_bar.dart';
 import '../new_course_table/widgets/course_card.dart';
 
 class CoursePage extends StatelessWidget {

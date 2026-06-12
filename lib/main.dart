@@ -24,6 +24,7 @@ void main() async{
           context
               .read<FirebaseAuthService>()
               .onAuthStateChanged,
+          initialData: null,
         ),
         ChangeNotifierProvider(
             create: (context) => UserDB()

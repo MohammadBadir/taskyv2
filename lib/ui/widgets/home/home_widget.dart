@@ -155,9 +155,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
     Widget taskCardMaker(int index, double cardWidth){
       var borderColor = Provider.of<UserDB>(context).mainColor;
-      var buttonColor = Provider.of<UserDB>(context).secondaryColor;
       var hwData = sortedTaskList[index];
-      var userDb = Provider.of<UserDB>(context);
       int timeDiff(int index) {
         return daysBetween(currentTime, DateTime.fromMillisecondsSinceEpoch(sortedTaskList[index]['due']));
       }

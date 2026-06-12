@@ -54,6 +54,8 @@ class NavigationDrawer extends StatelessWidget {
     ),
       TextButton(
         onPressed: () {
+          //Drop the cached document download so the next sign-in refetches
+          context.read<UserDB>().clearCachedData();
           context.read<FirebaseAuthService>().signOut();
         },
         child: Text(Strings.signOut),

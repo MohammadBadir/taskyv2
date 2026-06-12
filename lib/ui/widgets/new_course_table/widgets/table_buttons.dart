@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/card_wrapper.dart';
-import '../../../../app/services/user_db.dart';
 
 class TableButtons extends StatelessWidget {
   const TableButtons({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Color mainColor = Provider.of<UserDB>(context).mainColor;
-
     var raw = Container(
       color: Colors.green,
       child: Row(

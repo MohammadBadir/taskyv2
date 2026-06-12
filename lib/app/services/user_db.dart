@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:tasky/app/constants/pages.dart';
 import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/constants/themes.dart';
@@ -43,12 +40,35 @@ class UserDB extends ChangeNotifier {
   DocumentReference userDocument;
   bool firstTime;
 
-  int debugNum = 0;
-
   //non-db stored data
   Map<int, Map<String, Map<String, CellStatus>>> backupMap = {}; // weekIndex -> courseName -> fieldType (lec/tut/wrk) -> FieldType
 
-  downloadCourseData() async {
+  Future _downloadFuture;
+  String _downloadedUid;
+
+  /**
+   * The init gate (app.dart / NavigationDrawer) creates this Future inside
+   * build(), so every rebuild during startup would refetch the document.
+   * Cache it per signed-in user instead.
+   */
+  Future downloadCourseData() {
+    String uid = FirebaseAuth.instance.currentUser.uid;
+    if (_downloadFuture == null || _downloadedUid != uid) {
+      _downloadedUid = uid;
+      _downloadFuture = _downloadCourseData();
+    }
+    return _downloadFuture;
+  }
+
+  /**
+   * Forgets the cached download so the next sign-in refetches.
+   */
+  clearCachedData() {
+    _downloadFuture = null;
+    _downloadedUid = null;
+  }
+
+  _downloadCourseData() async {
     print("Fetching Data");
     assert(FirebaseAuth.instance.currentUser != null);
     String uid = FirebaseAuth.instance.currentUser.uid;
@@ -160,9 +180,6 @@ class UserDB extends ChangeNotifier {
     mainColor = Themes.colorPalletes[selectedTheme]['main'];
     secondaryColor = Themes.colorPalletes[selectedTheme]['second'];
 
-    userSnapshot = await userDocument.get();
-    //Map<String, dynamic> userData = userSnapshot.data();
-
     await userDocument.update({
       'zMiscData': {
         'lastLogin': DateTime.now().toString(),
@@ -202,8 +219,11 @@ class UserDB extends ChangeNotifier {
   // }
 
   updateCourses() {
-    userDocument.update({'courseOrderBySemester': courseOrderBySemester});
-    userDocument.update({'progressMapsBySemester': progressMapsBySemester});
+    //Single write - these were two separate round trips per cell tap
+    userDocument.update({
+      'courseOrderBySemester': courseOrderBySemester,
+      'progressMapsBySemester': progressMapsBySemester
+    });
     notifyListeners();
   }
 
@@ -211,20 +231,6 @@ class UserDB extends ChangeNotifier {
   //   assert(!semesterOrder.contains(title));
   //
   // }
-
-  /**
-   * Legacy function - unused
-   */
-  addWord(String word) async {
-    assert(FirebaseAuth.instance.currentUser != null);
-    assert(courseOrder != null);
-    assert(userDocument != null);
-    debugNum++;
-    courseOrder.add(word + debugNum.toString());
-    print(courseOrder);
-    await userDocument.update({'courseOrder': courseOrder});
-    notifyListeners();
-  }
 
   addPendingTask(String task) {
     pendingTaskList.add(task);
@@ -589,7 +595,6 @@ class UserDB extends ChangeNotifier {
    * Clears all markings from all courses (including hidden).
    */
   clearAllCourses(){
-    int numWeeks = 13;
     for (String courseName in courseOrder) {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
@@ -870,8 +875,6 @@ class UserDB extends ChangeNotifier {
    *
    */
   _clearPendingInColumn(int weekIndex){
-    int numOfWeeks = 13;
-
     for (String courseName in courseOrder) {
       Map courseMap = courseProgressMap[courseName];
       Map courseData = courseMap['data'];
@@ -1094,7 +1097,6 @@ class UserDB extends ChangeNotifier {
     Map<String, Map<String, CellStatus>> weekMap = backupMap[weekIndex] = {};
     for(String courseName in courseOrder){
       Map courseMap = courseProgressMap[courseName];
-      Map courseData = courseMap['data'];
       Map courseInfo = courseMap['info'];
       var courseOptions = CourseOptions.fromInfoMap(courseInfo);
 
@@ -1124,10 +1126,8 @@ class UserDB extends ChangeNotifier {
    * Restores backed up week for all courses and class types (including hidden courses)
    */
   _restoreBackup(int weekIndex){
-    Map<String, Map<String, CellStatus>> weekMap = backupMap[weekIndex];
     for (String courseName in courseOrder){
       Map courseMap = courseProgressMap[courseName];
-      Map courseData = courseMap['data'];
       Map courseInfo = courseMap['info'];
       var courseOptions = CourseOptions.fromInfoMap(courseInfo);
 

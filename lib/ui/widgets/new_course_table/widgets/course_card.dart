@@ -30,7 +30,6 @@ class CourseCard extends StatelessWidget {
       int numWeeks = 13;
       CourseOptions courseOptions = courseOptionsFromInfo(courseMap['info']);
       Map courseData = courseMap['data'];
-      int numRows = courseData.length;
 
       Widget press({String label, String fieldName, int count = 1}) {
         //TODO: Make this into an organized class. At the moment it's very hard to read.

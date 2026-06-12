@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tasky/app/constants/pages.dart';
 import 'package:tasky/app/constants/themes.dart';
-import 'package:tasky/app/drawer/navigation_drawer.dart';
-import 'package:tasky/app/models/course_options.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 
@@ -11,11 +9,6 @@ showSettingsDialog(BuildContext context){
   showDialog(
       context: context,
       builder: (BuildContext context) {
-        String oldCourseName = "hi";
-        String newCourseName = oldCourseName;
-        int lecCount = 0;
-        int tutCount = 0;
-        int wrkCount = 0;
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -272,7 +265,6 @@ showSettingsDialog(BuildContext context){
 
 Widget taskyAppBar(context, String title){
   //TODO: this whole file is a mess, needs to tidied and replaced with a proper class
-  int selectedSemester = Provider.of<UserDB>(context).currentSemester;
   return AppBar(
     backgroundColor: Provider.of<UserDB>(context).mainColor,
     title: Center(child: Text(title)),

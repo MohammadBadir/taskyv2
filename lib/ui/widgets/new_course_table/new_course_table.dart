@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tasky/app/constants/strings.dart';
 import 'package:tasky/app/drawer/navigation_drawer.dart';
 import 'package:tasky/app/models/course_options.dart';
 import 'package:tasky/app/services/user_db.dart';
 import 'package:tasky/ui/widgets/app_bar/tasky_app_bar.dart';
 import 'package:tasky/ui/widgets/misc/basic_dialog.dart';
 import 'package:tasky/ui/widgets/misc/screen_too_small.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:tasky/ui/widgets/new_course_table/widgets/card_wrapper.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/course_card.dart';
-import 'package:tasky/ui/widgets/new_course_table/widgets/table_buttons.dart';
 import 'package:tasky/ui/widgets/new_course_table/widgets/week_bar.dart';
 
 import 'no_courses.dart';
@@ -29,7 +25,6 @@ class _NewCourseTableWidgetState extends State<NewCourseTableWidget> {
     List courseOrder = userDB.courseOrder;
     Map courseProgressMap = userDB.courseProgressMap;
     Color mainColor = userDB.mainColor;
-    Color secondaryColor = userDB.secondaryColor;
 
     //courseProgressMap.forEach((key, value) { print(MapEntry(key, value)); });
 
