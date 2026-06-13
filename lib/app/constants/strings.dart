@@ -1,7 +1,7 @@
 class Strings {
   // App
   static const String appName = 'Tasky';
-  static const String version = 'v0.5.4';
+  static const String version = 'v0.5.5';
 
   // Authentication
   static const String signInMessage = 'Please sign in to continue';

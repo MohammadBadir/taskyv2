@@ -84,6 +84,14 @@ class UserDB extends ChangeNotifier {
    * blocked by rules) simply leaves the banner off.
    */
   Future loadAnnouncement() async {
+    //Built-in default: the taskyv3 migration notice. Live as soon as this is
+    //deployed, with no Firestore doc required. A meta/announcement doc (if it
+    //exists and is readable) overrides any of these fields, so the message can
+    //still be reworded or switched off from the console without a redeploy.
+    announcementEnabled = true;
+    announcementMessage =
+        "As I promised you last year... The new Tasky is here! It's faster, works on phones, and is where future development will be. Your courses will be waiting for you. Try it now!";
+    announcementUrl = "https://taskyv3.web.app";
     try {
       DocumentSnapshot announcementSnapshot = await FirebaseFirestore.instance
           .collection('meta')
@@ -91,12 +99,12 @@ class UserDB extends ChangeNotifier {
           .get();
       if (announcementSnapshot.exists) {
         Map<String, dynamic> announcementData = announcementSnapshot.data();
-        announcementEnabled = announcementData['enabled'] ?? false;
-        announcementMessage = announcementData['message'];
-        announcementUrl = announcementData['url'];
+        announcementEnabled = announcementData['enabled'] ?? announcementEnabled;
+        announcementMessage = announcementData['message'] ?? announcementMessage;
+        announcementUrl = announcementData['url'] ?? announcementUrl;
       }
     } catch (e) {
-      announcementEnabled = false;
+      //Keep the built-in default on any read failure (missing doc / rules)
     }
   }
 
