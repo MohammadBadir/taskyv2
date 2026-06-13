@@ -18,13 +18,31 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+  Future _initialization;
+  //Session-only: dismissing the banner hides it until the next page reload,
+  //which resets this flag so the banner shows again.
   bool _announcementShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialization = _init();
+  }
+
+  /**
+   * Initialises Firebase, then loads the announcement up front (before
+   * sign-in) so the banner can appear on the signed-out screen too.
+   */
+  Future _init() async {
+    await Firebase.initializeApp();
+    await context.read<UserDB>().loadAnnouncement();
+  }
 
   /**
    * Shows the remote-controlled announcement banner (if enabled and not
-   * previously dismissed for this message). Uses the app-level
-   * ScaffoldMessenger so the banner survives page navigation.
+   * already shown this session). Uses the app-level ScaffoldMessenger so the
+   * banner survives page navigation and the signed-out -> signed-in transition.
+   * Dismissal is in-memory only, so a page reload re-shows it.
    */
   void _maybeShowAnnouncement(BuildContext context) {
     UserDB userDB = Provider.of<UserDB>(context, listen: false);
@@ -34,16 +52,12 @@ class _MyAppState extends State<MyApp> {
         userDB.announcementMessage == "") {
       return;
     }
-    if (html.window.localStorage['dismissedAnnouncement'] ==
-        userDB.announcementMessage) {
-      return;
-    }
     _announcementShown = true;
     String message = userDB.announcementMessage;
     String url = userDB.announcementUrl;
-    Color mainColor = userDB.mainColor;
+    Color mainColor = userDB.mainColor ?? Colors.blueAccent;
+    ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
       messenger.showMaterialBanner(MaterialBanner(
         leading: Icon(Icons.campaign, color: mainColor),
         backgroundColor: Colors.white,
@@ -63,7 +77,6 @@ class _MyAppState extends State<MyApp> {
           TextButton(
             child: Text("DISMISS"),
             onPressed: () {
-              html.window.localStorage['dismissedAnnouncement'] = message;
               messenger.hideCurrentMaterialBanner();
             },
           ),
@@ -107,8 +120,11 @@ class _MyAppState extends State<MyApp> {
               visualDensity: VisualDensity.adaptivePlatformDensity,
             ),
             home: Consumer<UserData>(
-              builder: (_, user, __) {
+              builder: (consumerContext, user, __) {
                 if (user == null) {
+                  //Show on the signed-out screen too (SignInWidget is a Scaffold);
+                  //consumerContext is below MaterialApp so ScaffoldMessenger resolves.
+                  _maybeShowAnnouncement(consumerContext);
                   return const SignInWidget();
                 } else {
                   return Provider.of<FirebaseAuthService>(context).isInitialized ? firstPage(Provider.of<UserDB>(context).defaultPage) : FutureBuilder(

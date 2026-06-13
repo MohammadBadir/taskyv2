@@ -75,6 +75,31 @@ class UserDB extends ChangeNotifier {
     _downloadedUid = null;
   }
 
+  /**
+   * Loads the remote-controlled announcement (the taskyv3 migration notice)
+   * from meta/announcement. Deliberately independent of sign-in so the banner
+   * can also show on the signed-out screen; call once at startup, before auth.
+   * NOTE: for the signed-out case to work, Firestore rules must allow reading
+   * meta/announcement while unauthenticated. Any read failure (missing doc,
+   * blocked by rules) simply leaves the banner off.
+   */
+  Future loadAnnouncement() async {
+    try {
+      DocumentSnapshot announcementSnapshot = await FirebaseFirestore.instance
+          .collection('meta')
+          .doc('announcement')
+          .get();
+      if (announcementSnapshot.exists) {
+        Map<String, dynamic> announcementData = announcementSnapshot.data();
+        announcementEnabled = announcementData['enabled'] ?? false;
+        announcementMessage = announcementData['message'];
+        announcementUrl = announcementData['url'];
+      }
+    } catch (e) {
+      announcementEnabled = false;
+    }
+  }
+
   _downloadCourseData() async {
     print("Fetching Data");
     assert(FirebaseAuth.instance.currentUser != null);
@@ -186,22 +211,6 @@ class UserDB extends ChangeNotifier {
 
     mainColor = Themes.colorPalletes[selectedTheme]['main'];
     secondaryColor = Themes.colorPalletes[selectedTheme]['second'];
-
-    try {
-      DocumentSnapshot announcementSnapshot = await FirebaseFirestore.instance
-          .collection('meta')
-          .doc('announcement')
-          .get();
-      if (announcementSnapshot.exists) {
-        Map<String, dynamic> announcementData = announcementSnapshot.data();
-        announcementEnabled = announcementData['enabled'] ?? false;
-        announcementMessage = announcementData['message'];
-        announcementUrl = announcementData['url'];
-      }
-    } catch (e) {
-      //Doc missing or blocked by security rules - no announcement
-      announcementEnabled = false;
-    }
 
     await userDocument.update({
       'zMiscData': {
