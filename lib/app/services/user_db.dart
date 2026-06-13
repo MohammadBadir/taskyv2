@@ -40,6 +40,13 @@ class UserDB extends ChangeNotifier {
   DocumentReference userDocument;
   bool firstTime;
 
+  //Remote-controlled announcement (e.g. the taskyv3 migration notice),
+  //read from the meta/announcement doc so messaging can change without
+  //a redeploy. Off unless the doc exists, is readable, and enabled:true.
+  bool announcementEnabled = false;
+  String announcementMessage;
+  String announcementUrl;
+
   //non-db stored data
   Map<int, Map<String, Map<String, CellStatus>>> backupMap = {}; // weekIndex -> courseName -> fieldType (lec/tut/wrk) -> FieldType
 
@@ -179,6 +186,22 @@ class UserDB extends ChangeNotifier {
 
     mainColor = Themes.colorPalletes[selectedTheme]['main'];
     secondaryColor = Themes.colorPalletes[selectedTheme]['second'];
+
+    try {
+      DocumentSnapshot announcementSnapshot = await FirebaseFirestore.instance
+          .collection('meta')
+          .doc('announcement')
+          .get();
+      if (announcementSnapshot.exists) {
+        Map<String, dynamic> announcementData = announcementSnapshot.data();
+        announcementEnabled = announcementData['enabled'] ?? false;
+        announcementMessage = announcementData['message'];
+        announcementUrl = announcementData['url'];
+      }
+    } catch (e) {
+      //Doc missing or blocked by security rules - no announcement
+      announcementEnabled = false;
+    }
 
     await userDocument.update({
       'zMiscData': {
